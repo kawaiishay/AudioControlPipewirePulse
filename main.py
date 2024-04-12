@@ -43,8 +43,8 @@ class PluginTemplate(PluginBase):
         self.register(
             plugin_name = "AudioControl",
             github_repo = "https://github.com/G4PLS/AudioControl",
-            plugin_version = "1.0.0",
-            app_version = "1.1.1-alpha"
+            plugin_version = "1.0.0-alpha",
+            app_version = "1.4.9-beta"
         )
 
     def init_vars(self):
