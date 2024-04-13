@@ -94,7 +94,11 @@ class VolumeAdjust(ActionBase):
     def on_key_down(self):
         settings = self.get_settings()
         device_name = settings.get("device")
-        volume_change = settings.get("volume_change")
+        volume_change = settings.get("volume_change", 0)
+
+        if None in (device_name, volume_change):
+            self.show_error(1)
+            return
 
         for sink in self.plugin_base.pulse.sink_list():
             proplist = sink.proplist
