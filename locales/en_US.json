@@ -1,0 +1,10 @@
+{
+  "actions.adjust-vol.name": "Volume Adjust",
+  "actions.set-vol.name": "Set Volume",
+
+  "actions.set-vol.combo.title": "Audio Device",
+  "actions.set-vol.scale.title": "Set Volume",
+
+  "actions.adjust-vol.combo.title": "Audio Device",
+  "actions.adjust-vol.scale.title": "Volume Adjust"
+}

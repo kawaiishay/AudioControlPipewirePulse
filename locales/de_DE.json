@@ -1,0 +1,10 @@
+{
+  "actions.adjust-vol.name": "Lautstärke Einstellen",
+  "actions.set-vol.name": "Lautstärke Setzen",
+
+  "actions.set-vol.combo.title": "Audio Gerät",
+  "actions.set-vol.scale.title": "Lautstärke",
+
+  "actions.adjust-vol.combo.title": "Audio Gerät",
+  "actions.adjust-vol.scale.title": "Lautstärke Ändern"
+}
