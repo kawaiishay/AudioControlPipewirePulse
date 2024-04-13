@@ -5,9 +5,9 @@ from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
 
 # Import actions
-from plugins.AudioControl.actions.VolumeAdjust import VolumeAdjust
-from plugins.AudioControl.actions.SetVolume import SetVolume
-from plugins.AudioControl.actions.VolumeDisplay import VolumeDisplay
+from .actions.VolumeAdjust import VolumeAdjust
+from .actions.SetVolume import SetVolume
+from .actions.VolumeDisplay import VolumeDisplay
 
 class PluginTemplate(PluginBase):
     def __init__(self):
@@ -19,7 +19,7 @@ class PluginTemplate(PluginBase):
             plugin_base=self,
             action_base=VolumeAdjust,
             action_id="com_gapls_AudioControl::AdjustVolume", # Change this to your own plugin id
-            action_name="Volume Adjust",
+            action_name=self.lm.get("actions.adjust-vol.name"),
         )
         self.add_action_holder(self.volume_adjust_action_holder)
 
@@ -27,7 +27,7 @@ class PluginTemplate(PluginBase):
             plugin_base=self,
             action_base=SetVolume,
             action_id="com_gapls_AudioControl::SetVolume",  # Change this to your own plugin id
-            action_name="Set Volume",
+            action_name=self.lm.get("actions.set-vol.name"),
         )
         self.add_action_holder(self.set_volume_action_holder)
 
@@ -44,9 +44,10 @@ class PluginTemplate(PluginBase):
             plugin_name = "AudioControl",
             github_repo = "https://github.com/G4PLS/AudioControl",
             plugin_version = "1.0.0-alpha",
-            app_version = "1.4.9-beta"
+            app_version = "1.4.10-beta"
         )
 
     def init_vars(self):
+        self.lm = self.locale_manager
+        self.lm.set_to_os_default()
         self.pulse = pulsectl.Pulse("volume-controller", threading_lock=True)
-

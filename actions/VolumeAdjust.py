@@ -1,6 +1,11 @@
 # Import StreamController modules
 
-from GtkHelper.GtkHelper import ComboRow, ScaleRow
+try:
+    from GtkHelper.GtkHelper import ScaleRow
+except ImportError:
+    from ..internal.ScaleRow import ScaleRow
+
+from GtkHelper.GtkHelper import ComboRow
 from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.DeckManagement.DeckController import DeckController
 from src.backend.PageManagement.Page import Page
@@ -24,10 +29,10 @@ class VolumeAdjust(ActionBase):
 
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
-        self.device_row = ComboRow(title="Audio Device",
+        self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.adjust-vol.combo.title"),
                                    model=self.device_model)
 
-        self.scale_row = ScaleRow(title="Volume Adjust", value=0, min=-25, max=25, step=1, text_left="-25", text_right="+25")
+        self.scale_row = ScaleRow(title=self.plugin_base.lm.get("actions.adjust-vol.scale.title"), value=0, min=-25, max=25, step=1, text_left="-25", text_right="+25")
 
         self.device_cell_renderer = Gtk.CellRendererText()
         self.device_row.combo_box.pack_start(self.device_cell_renderer, True)
