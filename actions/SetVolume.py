@@ -26,6 +26,9 @@ class SetVolume(ActionBase):
         super().__init__(action_id=action_id, action_name=action_name,
             deck_controller=deck_controller, page=page, coords=coords, plugin_base=plugin_base)
 
+    #
+    # OVERRIDDEN
+    #
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
         self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.set-vol.combo.title"),
@@ -41,18 +44,52 @@ class SetVolume(ActionBase):
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
         self.scale_row.scale.connect("value-changed", self.on_volume_change)
+        self.scale_row.scale.connect("value-changed", self.set_tooltip)
 
         self.load_config_settings()
 
         return [self.device_row, self.scale_row]
 
-    def filter_proplist(self, proplist) -> [str, None]:
-        name = proplist.get("node.name")
+    def on_key_down(self):
+        settings = self.get_settings()
+        device_name = settings.get("device")
+        volume_change = settings.get("volume_change")
 
-        if name is None or "alsa" in name:
-            name = proplist.get("device.product.name", proplist.get("device.description"))
+        if None in (device_name, volume_change):
+            self.show_error(1)
+            returndfdfd
 
-        return name
+        for sink in self.plugin_base.pulse.sink_list():
+            proplist = sink.proplist
+            name = self.filter_proplist(proplist)
+
+            if name != device_name:
+                continue
+
+            volumes = [volume_change * 0.01 for vol in sink.volume.values]
+
+            self.plugin_base.pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
+            break
+
+    #
+    # CUSTOM EVENTS
+    #
+
+    def on_device_change(self, combo_box, *args):
+        name = self.device_model[combo_box.get_active()][0]
+        settings = self.get_settings()
+        settings["device"] = name
+        self.set_settings(settings)
+
+    def on_volume_change(self, scale):
+        name = scale.get_value()
+        settings = self.get_settings()
+        settings["volume_change"] = name
+        self.set_settings(settings)
+
+    #
+    # HELPER FUNCTIONS
+    #
 
     def load_device_model(self):
         self.device_model.clear()
@@ -78,36 +115,12 @@ class SetVolume(ActionBase):
         if volume_change is not None:
             self.scale_row.scale.set_value(volume_change)
 
-    def on_device_change(self, combo_box, *args):
-        name = self.device_model[combo_box.get_active()][0]
-        settings = self.get_settings()
-        settings["device"] = name
-        self.set_settings(settings)
+    def filter_proplist(self, proplist) -> [str, None]:
+        name = proplist.get("node.name")
 
-    def on_volume_change(self, scale):
-        name = scale.get_value()
-        settings = self.get_settings()
-        settings["volume_change"] = name
-        self.set_settings(settings)
+        if name is None or "alsa" in name:
+            name = proplist.get("device.product.name", proplist.get("device.description"))
 
-    def on_key_down(self):
-        settings = self.get_settings()
-        device_name = settings.get("device")
-        volume_change = settings.get("volume_change", 0)
+        return name
 
-        if None in (device_name, volume_change):
-            self.show_error(1)
-            return
-
-        for sink in self.plugin_base.pulse.sink_list():
-            proplist = sink.proplist
-            name = self.filter_proplist(proplist)
-
-            if name != device_name:
-                continue
-
-            volumes = [volume_change * 0.01 for vol in sink.volume.values]
-
-            self.plugin_base.pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
-            break
 

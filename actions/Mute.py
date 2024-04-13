@@ -1,9 +1,8 @@
 # Import StreamController modules
-
 try:
     from GtkHelper.GtkHelper import ScaleRow
 except ImportError:
-    from ..internal.ScaleRow import ScaleRow
+    from data.plugins.AudioControl.internal.ScaleRow import ScaleRow
 
 from GtkHelper.GtkHelper import ComboRow
 from src.backend.PluginManager.ActionBase import ActionBase
@@ -21,7 +20,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw
 
-class VolumeAdjust(ActionBase):
+class Mute(ActionBase):
     def __init__(self, action_id: str, action_name: str,
                  deck_controller: DeckController, page: Page, coords: str, plugin_base: PluginBase):
         super().__init__(action_id=action_id, action_name=action_name,
@@ -32,17 +31,22 @@ class VolumeAdjust(ActionBase):
     #
 
     def on_ready(self):
-        self.set_image(self.get_settings().get("volume_change"))
+        device_name = self.get_settings().get("device")
+
+        if device_name is None:
+            return
+
+        for sink in self.plugin_base.pulse.sink_list():
+            name = self.filter_proplist(sink.proplist)
+
+            if name == device_name:
+                self.sink_index = sink.index
+                break
 
     def get_config_rows(self) -> list:
-        self.device_model = Gtk.ListStore.new([str])
-
-        # Device Dropdown
-        self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.adjust-vol.combo.title"),
+        self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
+        self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.set-vol.combo.title"),
                                    model=self.device_model)
-
-        # Volume Slider
-        self.scale_row = ScaleRow(title=self.plugin_base.lm.get("actions.adjust-vol.scale.title"), value=0, min=-25, max=25, step=1, text_left="-25", text_right="+25")
 
         self.device_cell_renderer = Gtk.CellRendererText()
         self.device_row.combo_box.pack_start(self.device_cell_renderer, True)
@@ -51,72 +55,64 @@ class VolumeAdjust(ActionBase):
         self.load_device_model()
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
-        self.scale_row.scale.connect("value-changed", self.on_volume_change)
 
         self.load_config_settings()
 
-        return [self.device_row, self.scale_row]
+        return [self.device_row]
 
     def on_key_down(self):
         settings = self.get_settings()
         device_name = settings.get("device")
-        volume_change = settings.get("volume_change")
-
-        if None in (device_name, volume_change):
-            self.show_error(1)
-            return
 
         for sink in self.plugin_base.pulse.sink_list():
             proplist = sink.proplist
-            name = self.filter_proplist_for_name(proplist)
+            name = self.filter_proplist(proplist)
 
             if name != device_name:
                 continue
 
-            self.plugin_base.pulse.volume_change_all_chans(sink, volume_change * 0.01)
-            # volumes = [max(vol + volume_change * 0.01, 0) for vol in sink.volume.values]
-            #self.plugin_base.pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
+            mute_state = 1 if sink.mute == 0 else 0
+
+            self.plugin_base.pulse.mute(sink, mute_state)
+            self.set_image(mute_state)
             break
 
     #
     # CUSTOM EVENTS
     #
 
-    def on_volume_change(self, scale):
-        volume = scale.get_value()
-        settings = self.get_settings()
-        settings["volume_change"] = volume
-        scale.set_tooltip_text(("+" if volume > 0 else "") + str(volume))
-        self.set_settings(settings)
-        self.set_image(volume)
-
     def on_device_change(self, combo_box, *args):
-        name = self.device_model[combo_box.get_active()][0]
+        device_name = self.device_model[combo_box.get_active()][0]
         settings = self.get_settings()
-        settings["device"] = name
+        settings["device"] = device_name
         self.set_settings(settings)
+
+        for sink in self.plugin_base.pulse.sink_list():
+            name = self.filter_proplist(sink.proplist)
+
+            if name == device_name:
+                self.sink_index = sink.index
+                break
 
     #
     # HELPER FUNCTIONS
     #
 
-    # Get all current sinks and append the names for the dropdowns
     def load_device_model(self):
         self.device_model.clear()
-        device_name = self.get_settings().get("device")
         for sink in self.plugin_base.pulse.sink_list():
-            name = self.filter_proplist_for_name(sink.proplist)
+            proplist = sink.proplist
+            device_name = self.filter_proplist(proplist)
 
-            if name is None:
+            if device_name is None:
                 continue
-            self.device_model.append([name])
+            if device_name == self.get_settings().get("device"):
+                self.sink_index = sink.index
+            self.device_model.append([device_name])
 
-    # Loads the Config into the UI
     def load_config_settings(self):
         settings = self.get_settings()
         device_name = settings.get("device")
-        volume_change = settings.get("volume_change")
-
         for i, device in enumerate(self.device_model):
             if device[0] == device_name:
                 self.device_row.combo_box.set_active(i)
@@ -124,21 +120,16 @@ class VolumeAdjust(ActionBase):
 
         if device_name is None:
             self.device_row.combo_box.set_active(-1)
-        if volume_change is not None:
-            self.scale_row.scale.set_value(volume_change)
 
-    def set_image(self, vol_change):
-        if vol_change is None: return
-
-        if vol_change >= 0:
-            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_up.png"))
-        else:
-            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_down.png"))
-
-    def filter_proplist_for_name(self, proplist) -> [str, None]:
+    def filter_proplist(self, proplist) -> [str, None]:
         name = proplist.get("node.name")
 
         if name is None or "alsa" in name:
             name = proplist.get("device.product.name", proplist.get("device.description"))
-
         return name
+
+    def set_image(self, mute_state):
+        if mute_state == 1:
+            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "mute.png"))
+        else:
+            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "audio.png"))
