@@ -133,4 +133,7 @@ class VolumeDisplay(ActionBase):
 
     def set_volume_text(self, volumes):
         volumes = [int(vol * 100) for vol in volumes]
-        self.text = str(volumes)
+        if len(volumes) <= 0:
+            self.text = ""
+        else:
+            self.text = f'{volumes[0]}%'
