@@ -1,10 +1,17 @@
 {
   "actions.adjust-vol.name": "Volume Adjust",
   "actions.set-vol.name": "Set Volume",
+  "actions.mute.name": "Mute",
+  "actions.vd.name": "Volume Display",
+
+  "actions.adjust-vol.combo.title": "Audio Device",
+  "actions.adjust-vol.scale.title": "Volume Adjust",
+  "actions.adjust-vol.switch.title": "Display Volume Change",
 
   "actions.set-vol.combo.title": "Audio Device",
   "actions.set-vol.scale.title": "Set Volume",
 
-  "actions.adjust-vol.combo.title": "Audio Device",
-  "actions.adjust-vol.scale.title": "Volume Adjust"
+  "actions.mute.combo.title": "Audio Device",
+
+  "actions.vd.combo.title": "Audio Device"
 }

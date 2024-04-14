@@ -5,11 +5,6 @@ try:
 except ImportError:
     from ..internal.ScaleRow import ScaleRow
 
-try:
-    from GtkHelper.GtkHelper import SwitchRow
-except ImportError:
-    from ..internal.SwitchRow import SwitchRow
-
 from GtkHelper.GtkHelper import ComboRow
 from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.DeckManagement.DeckController import DeckController
@@ -53,7 +48,8 @@ class VolumeAdjust(ActionBase):
         # Volume Slider
         self.scale_row = ScaleRow(title=self.plugin_base.lm.get("actions.adjust-vol.scale.title"), value=0, min=-25, max=25, step=1, text_left="-25", text_right="+25")
 
-        self.switch_row = SwitchRow(title="Display Volume Change")
+        self.switch_row = Adw.SwitchRow(title=self.plugin_base.lm.get("actions.adjust-vol.switch.title"))
+
 
         self.device_cell_renderer = Gtk.CellRendererText()
         self.device_row.combo_box.pack_start(self.device_cell_renderer, True)
@@ -63,7 +59,7 @@ class VolumeAdjust(ActionBase):
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
         self.scale_row.scale.connect("value-changed", self.on_volume_change)
-        self.switch_row.switch.connect("notify::active", self.on_switch_change)
+        self.switch_row.connect("notify::active", self.on_switch_change)
 
         self.load_config_settings()
 
@@ -151,7 +147,7 @@ class VolumeAdjust(ActionBase):
         if volume_change is not None:
             self.scale_row.scale.set_value(volume_change)
         if display is not None:
-            self.switch_row.switch.set_active(display)
+            self.switch_row.set_active(display)
 
         self.set_volume_label(display, volume_change)
 

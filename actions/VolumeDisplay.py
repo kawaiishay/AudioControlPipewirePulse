@@ -56,7 +56,7 @@ class VolumeDisplay(ActionBase):
 
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
-        self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.set-vol.combo.title"),
+        self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.vd.combo.title"),
                                    model=self.device_model)
 
         self.device_cell_renderer = Gtk.CellRendererText()

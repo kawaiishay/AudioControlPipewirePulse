@@ -1,10 +1,17 @@
 {
-  "actions.adjust-vol.name": "Lautstärke Einstellen",
+ "actions.adjust-vol.name": "Lautstärke Einstellen",
   "actions.set-vol.name": "Lautstärke Setzen",
+  "actions.mute.name": "Mute",
+  "actions.vd.name": "Lautstärke Anzeigen",
 
-  "actions.set-vol.combo.title": "Audio Gerät",
-  "actions.set-vol.scale.title": "Lautstärke",
+  "actions.adjust-vol.combo.title": "Audiogerät",
+  "actions.adjust-vol.scale.title": "Lautstärke Änderung",
+  "actions.adjust-vol.switch.title": "Änderung Anzeigen",
 
-  "actions.adjust-vol.combo.title": "Audio Gerät",
-  "actions.adjust-vol.scale.title": "Lautstärke Ändern"
+  "actions.set-vol.combo.title": "Audiogerät",
+  "actions.set-vol.scale.title": "Lautstärke Setzen",
+
+  "actions.mute.combo.title": "Audiogerät",
+
+  "actions.vd.combo.title": "Audiogerät"
 }

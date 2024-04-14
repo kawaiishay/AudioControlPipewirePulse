@@ -50,7 +50,7 @@ class Mute(ActionBase):
 
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
-        self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.set-vol.combo.title"),
+        self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.mute.combo.title"),
                                    model=self.device_model)
 
         self.device_cell_renderer = Gtk.CellRendererText()
@@ -68,6 +68,10 @@ class Mute(ActionBase):
     def on_key_down(self):
         settings = self.get_settings()
         device_name = settings.get("device")
+
+        if device_name is None:
+            self.show_error(1)
+            return
 
         with pulsectl.Pulse("volume-changer-mute-key") as pulse:
             for sink in pulse.sink_list():
@@ -99,6 +103,7 @@ class Mute(ActionBase):
 
                 if name == device_name:
                     self.sink_index = sink.index
+                    self.set_image(sink.mute)
                     break
 
     def on_sink_change(self, event):
