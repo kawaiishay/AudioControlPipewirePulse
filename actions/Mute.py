@@ -2,7 +2,7 @@
 try:
     from GtkHelper.GtkHelper import ScaleRow
 except ImportError:
-    from data.plugins.AudioControl.internal.ScaleRow import ScaleRow
+    from ..internal.ScaleRow import ScaleRow
 
 from GtkHelper.GtkHelper import ComboRow
 from src.backend.PluginManager.ActionBase import ActionBase
@@ -32,16 +32,20 @@ class Mute(ActionBase):
 
     def on_ready(self):
         device_name = self.get_settings().get("device")
+        self.sink_index = -1
+        self.plugin_base.observer.add_observer(self.on_sink_change)
 
         if device_name is None:
             return
 
-        for sink in self.plugin_base.pulse.sink_list():
-            name = self.filter_proplist(sink.proplist)
+        with pulsectl.Pulse("volume-controller-mute-ready") as pulse:
+            for sink in pulse.sink_list():
+                name = self.filter_proplist(sink.proplist)
 
-            if name == device_name:
-                self.sink_index = sink.index
-                break
+                if name == device_name:
+                    self.sink_index = sink.index
+                    self.set_image(sink.mute)
+                    break
 
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
@@ -64,18 +68,19 @@ class Mute(ActionBase):
         settings = self.get_settings()
         device_name = settings.get("device")
 
-        for sink in self.plugin_base.pulse.sink_list():
-            proplist = sink.proplist
-            name = self.filter_proplist(proplist)
+        with pulsectl.Pulse("volume-changer-mute-key") as pulse:
+            for sink in pulse.sink_list():
+                proplist = sink.proplist
+                name = self.filter_proplist(proplist)
 
-            if name != device_name:
-                continue
+                if name != device_name:
+                    continue
 
-            mute_state = 1 if sink.mute == 0 else 0
+                mute_state = 1 if sink.mute == 0 else 0
 
-            self.plugin_base.pulse.mute(sink, mute_state)
-            self.set_image(mute_state)
-            break
+                pulse.mute(sink, mute_state)
+                self.set_image(mute_state)
+                break
 
     #
     # CUSTOM EVENTS
@@ -87,28 +92,34 @@ class Mute(ActionBase):
         settings["device"] = device_name
         self.set_settings(settings)
 
-        for sink in self.plugin_base.pulse.sink_list():
-            name = self.filter_proplist(sink.proplist)
+        with pulsectl.Pulse("volume-changer-mute-device") as pulse:
+            for sink in pulse.sink_list():
+                name = self.filter_proplist(sink.proplist)
 
-            if name == device_name:
-                self.sink_index = sink.index
-                break
+                if name == device_name:
+                    self.sink_index = sink.index
+                    break
 
-    #
-    # HELPER FUNCTIONS
-    #
+    def on_sink_change(self, event):
+        if event.index == self.sink_index:
+            with pulsectl.Pulse("volume-changer-mute-event") as pulse:
+                for sink in pulse.sink_list():
+                    if sink.index == self.sink_index:
+                        self.set_image(sink.mute)
+                        break
 
     def load_device_model(self):
         self.device_model.clear()
-        for sink in self.plugin_base.pulse.sink_list():
-            proplist = sink.proplist
-            device_name = self.filter_proplist(proplist)
+        with pulsectl.Pulse("volume-changer-mute-device") as pulse:
+            for sink in pulse.sink_list():
+                proplist = sink.proplist
+                device_name = self.filter_proplist(proplist)
 
-            if device_name is None:
-                continue
-            if device_name == self.get_settings().get("device"):
-                self.sink_index = sink.index
-            self.device_model.append([device_name])
+                if device_name is None:
+                    continue
+                if device_name == self.get_settings().get("device"):
+                    self.sink_index = sink.index
+                self.device_model.append([device_name])
 
     def load_config_settings(self):
         settings = self.get_settings()
