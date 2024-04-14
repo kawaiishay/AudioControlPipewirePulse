@@ -66,17 +66,18 @@ class VolumeAdjust(ActionBase):
             self.show_error(1)
             return
 
-        for sink in self.plugin_base.pulse.sink_list():
-            proplist = sink.proplist
-            name = self.filter_proplist_for_name(proplist)
+        with pulsectl.Pulse("volume-changer-va-key") as pulse:
+            for sink in pulse.sink_list():
+                proplist = sink.proplist
+                name = self.filter_proplist_for_name(proplist)
 
-            if name != device_name:
-                continue
+                if name != device_name:
+                    continue
 
-            self.plugin_base.pulse.volume_change_all_chans(sink, volume_change * 0.01)
-            # volumes = [max(vol + volume_change * 0.01, 0) for vol in sink.volume.values]
-            #self.plugin_base.pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
-            break
+                pulse.volume_change_all_chans(sink, volume_change * 0.01)
+                # volumes = [max(vol + volume_change * 0.01, 0) for vol in sink.volume.values]
+                #self.plugin_base.pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
+                break
 
     #
     # CUSTOM EVENTS
@@ -104,12 +105,13 @@ class VolumeAdjust(ActionBase):
     def load_device_model(self):
         self.device_model.clear()
         device_name = self.get_settings().get("device")
-        for sink in self.plugin_base.pulse.sink_list():
-            name = self.filter_proplist_for_name(sink.proplist)
+        with pulsectl.Pulse("volume-changer-va-device") as pulse:
+            for sink in pulse.sink_list():
+                name = self.filter_proplist_for_name(sink.proplist)
 
-            if name is None:
-                continue
-            self.device_model.append([name])
+                if name is None:
+                    continue
+                self.device_model.append([name])
 
     # Loads the Config into the UI
     def load_config_settings(self):
@@ -127,14 +129,6 @@ class VolumeAdjust(ActionBase):
         if volume_change is not None:
             self.scale_row.scale.set_value(volume_change)
 
-    def set_image(self, vol_change):
-        if vol_change is None: return
-
-        if vol_change >= 0:
-            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_up.png"))
-        else:
-            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_down.png"))
-
     def filter_proplist_for_name(self, proplist) -> [str, None]:
         name = proplist.get("node.name")
 
@@ -142,3 +136,11 @@ class VolumeAdjust(ActionBase):
             name = proplist.get("device.product.name", proplist.get("device.description"))
 
         return name
+
+    def set_image(self, vol_change):
+        if vol_change is None: return
+
+        if vol_change >= 0:
+            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_up.png"))
+        else:
+            self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_down.png"))

@@ -44,7 +44,6 @@ class SetVolume(ActionBase):
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
         self.scale_row.scale.connect("value-changed", self.on_volume_change)
-        self.scale_row.scale.connect("value-changed", self.set_tooltip)
 
         self.load_config_settings()
 
@@ -57,19 +56,20 @@ class SetVolume(ActionBase):
 
         if None in (device_name, volume_change):
             self.show_error(1)
-            returndfdfd
+            return
 
-        for sink in self.plugin_base.pulse.sink_list():
-            proplist = sink.proplist
-            name = self.filter_proplist(proplist)
+        with pulsectl.Pulse("volume-changer-sv-key") as pulse:
+            for sink in pulse.sink_list():
+                proplist = sink.proplist
+                name = self.filter_proplist(proplist)
 
-            if name != device_name:
-                continue
+                if name != device_name:
+                    continue
 
-            volumes = [volume_change * 0.01 for vol in sink.volume.values]
+                volumes = [volume_change * 0.01 for vol in sink.volume.values]
 
-            self.plugin_base.pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
-            break
+                pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
+                break
 
     #
     # CUSTOM EVENTS
@@ -82,9 +82,10 @@ class SetVolume(ActionBase):
         self.set_settings(settings)
 
     def on_volume_change(self, scale):
-        name = scale.get_value()
+        volume = scale.get_value()
+        scale.set_tooltip_text(str(volume))
         settings = self.get_settings()
-        settings["volume_change"] = name
+        settings["volume_change"] = volume
         self.set_settings(settings)
 
     #
@@ -93,13 +94,14 @@ class SetVolume(ActionBase):
 
     def load_device_model(self):
         self.device_model.clear()
-        for sink in self.plugin_base.pulse.sink_list():
-            proplist = sink.proplist
-            name = self.filter_proplist(proplist)
+        with pulsectl.Pulse("volume-changer-sv-device") as pulse:
+            for sink in pulse.sink_list():
+                proplist = sink.proplist
+                name = self.filter_proplist(proplist)
 
-            if name is None:
-                continue
-            self.device_model.append([name])
+                if name is None:
+                    continue
+                self.device_model.append([name])
 
     def load_config_settings(self):
         settings = self.get_settings()
@@ -120,7 +122,4 @@ class SetVolume(ActionBase):
 
         if name is None or "alsa" in name:
             name = proplist.get("device.product.name", proplist.get("device.description"))
-
         return name
-
-
