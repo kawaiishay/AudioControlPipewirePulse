@@ -5,6 +5,11 @@ try:
 except ImportError:
     from ..internal.ScaleRow import ScaleRow
 
+try:
+    from GtkHelper.GtkHelper import SwitchRow
+except ImportError:
+    from ..internal.SwitchRow import SwitchRow
+
 from GtkHelper.GtkHelper import ComboRow
 from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.DeckManagement.DeckController import DeckController
@@ -32,7 +37,10 @@ class VolumeAdjust(ActionBase):
     #
 
     def on_ready(self):
-        self.set_image(self.get_settings().get("volume_change"))
+        settings = self.get_settings()
+        volume = self.get_settings().get("volume_change")
+        self.set_volume_label(settings.get("display"), volume)
+        self.set_image(volume)
 
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])
@@ -44,6 +52,8 @@ class VolumeAdjust(ActionBase):
         # Volume Slider
         self.scale_row = ScaleRow(title=self.plugin_base.lm.get("actions.adjust-vol.scale.title"), value=0, min=-25, max=25, step=1, text_left="-25", text_right="+25")
 
+        self.switch_row = SwitchRow(title="Display Volume Change")
+
         self.device_cell_renderer = Gtk.CellRendererText()
         self.device_row.combo_box.pack_start(self.device_cell_renderer, True)
         self.device_row.combo_box.add_attribute(self.device_cell_renderer, "text", 0)
@@ -52,10 +62,11 @@ class VolumeAdjust(ActionBase):
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
         self.scale_row.scale.connect("value-changed", self.on_volume_change)
+        self.switch_row.switch.connect("notify::active", self.on_switch_change)
 
         self.load_config_settings()
 
-        return [self.device_row, self.scale_row]
+        return [self.device_row, self.scale_row, self.switch_row]
 
     def on_key_down(self):
         settings = self.get_settings()
@@ -87,15 +98,24 @@ class VolumeAdjust(ActionBase):
         volume = scale.get_value()
         settings = self.get_settings()
         settings["volume_change"] = volume
-        scale.set_tooltip_text(("+" if volume > 0 else "") + str(volume))
+        volume_text = ("+" if volume > 0 else "") + str(volume)
+        scale.set_tooltip_text(volume_text)
         self.set_settings(settings)
         self.set_image(volume)
+        self.set_volume_label(settings.get("display"), volume)
 
     def on_device_change(self, combo_box, *args):
         name = self.device_model[combo_box.get_active()][0]
         settings = self.get_settings()
         settings["device"] = name
         self.set_settings(settings)
+
+    def on_switch_change(self, switch, gstate):
+        state = switch.get_active()
+        settings = self.get_settings()
+        settings["display"] = state
+        self.set_settings(settings)
+        self.set_volume_label(state, settings.get("volume_change"))
 
     #
     # HELPER FUNCTIONS
@@ -118,6 +138,7 @@ class VolumeAdjust(ActionBase):
         settings = self.get_settings()
         device_name = settings.get("device")
         volume_change = settings.get("volume_change")
+        display = settings.get("display")
 
         for i, device in enumerate(self.device_model):
             if device[0] == device_name:
@@ -128,6 +149,10 @@ class VolumeAdjust(ActionBase):
             self.device_row.combo_box.set_active(-1)
         if volume_change is not None:
             self.scale_row.scale.set_value(volume_change)
+        if display is not None:
+            self.switch_row.switch.set_active(display)
+
+        self.set_volume_label(display, volume_change)
 
     def filter_proplist_for_name(self, proplist) -> [str, None]:
         name = proplist.get("node.name")
@@ -144,3 +169,9 @@ class VolumeAdjust(ActionBase):
             self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_up.png"))
         else:
             self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_down.png"))
+
+    def set_volume_label(self, display, volume):
+        if display is not None and display:
+            self.set_bottom_label(("+" if volume > 0 else "") + str(volume))
+        else:
+            self.set_bottom_label("")
