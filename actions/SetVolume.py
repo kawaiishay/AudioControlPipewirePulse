@@ -29,6 +29,9 @@ class SetVolume(ActionBase):
     #
     # OVERRIDDEN
     #
+    def on_ready(self):
+        self.HAS_CONFIGURATION = True
+
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
         self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.set-vol.combo.title"),

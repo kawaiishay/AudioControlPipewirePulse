@@ -37,6 +37,7 @@ class VolumeAdjust(ActionBase):
     #
 
     def on_ready(self):
+        self.HAS_CONFIGURATION = True
         settings = self.get_settings()
         volume = self.get_settings().get("volume_change")
         self.set_volume_label(settings.get("display"), volume)
@@ -171,7 +172,7 @@ class VolumeAdjust(ActionBase):
             self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "vol_down.png"))
 
     def set_volume_label(self, display, volume):
-        if display is not None and display:
+        if display is not None and display and volume is not None:
             self.set_bottom_label(("+" if volume > 0 else "") + str(volume))
         else:
             self.set_bottom_label("")

@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0-alpha",
+    "version": "1.1.0-alpha",
     "thumbnail": "store/Thumbnail.png",
     "id": "com_gapls_AudioControl",
     "name": "Audio Control",

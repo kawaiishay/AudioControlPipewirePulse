@@ -31,6 +31,7 @@ class VolumeDisplay(ActionBase):
     #
 
     def on_ready(self):
+        self.HAS_CONFIGURATION = True
         device_name = self.get_settings().get("device")
         self.sink_index = -1
         self.text = ""
@@ -86,6 +87,7 @@ class VolumeDisplay(ActionBase):
 
                 if name == device_name:
                     self.sink_index = sink.index
+                    self.set_volume_text(sink.volume.values)
                     break
 
     def on_sink_change(self, event):

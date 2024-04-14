@@ -31,6 +31,7 @@ class Mute(ActionBase):
     #
 
     def on_ready(self):
+        self.HAS_CONFIGURATION = True
         device_name = self.get_settings().get("device")
         self.sink_index = -1
         self.plugin_base.observer.add_observer(self.on_sink_change)
