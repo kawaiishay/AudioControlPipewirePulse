@@ -5,6 +5,7 @@
     "plugin-id": "com_gapls_AudioControl",
     "github": "https://github.com/G4PLS/AudioControl",
     "display-name": "Audio Control",
+    "thumbnail": "store/Thumbnail.png",
     "descriptions": {
         "en_US": "DESCRIPTION",
         "de_DE": "BESCHREIBUNG"
