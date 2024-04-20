@@ -53,13 +53,7 @@ class AudioControl(PluginBase):
         )
         self.add_action_holder(self.volume_display_action_holder)
 
-        # Register plugin
-        self.register(
-            plugin_name = "AudioControl",
-            github_repo = "https://github.com/G4PLS/AudioControl",
-            plugin_version = "1.1.0-alpha",
-            app_version = "1.4.11-beta"
-        )
+        self.register()
 
     def init_vars(self):
         self.lm = self.locale_manager
