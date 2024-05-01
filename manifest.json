@@ -8,7 +8,7 @@
     "thumbnail": "store/Thumbnail.png",
     "descriptions": {
         "en_US": "This Plugin allows you to take control over your Output devices by changing the Volume, Setting the Volume or Muting devices",
-        "de_DE": "Gibt dir die Kontroller über deine Audio Geräte. Das Plugin kann die Lautstärke ändern, setzen oder Geräte Stummschalten"
+        "de_DE": "Gibt dir die Kontrolle über deine Audio Geräte. Das Plugin kann die Lautstärke ändern, setzen oder Geräte Stummschalten"
     },
     "short-descriptions": {
         "en_US": "Lets you Control the Volume of your Output Devices",
