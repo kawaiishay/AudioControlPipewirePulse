@@ -32,6 +32,9 @@ class SetVolume(ActionBase):
     def on_ready(self):
         self.HAS_CONFIGURATION = True
 
+        settings = self.get_settings()
+        self.set_information_label(settings.get("show-information"), settings.get("volume_change"), settings.get("device"))
+
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
         self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.set-vol.combo.title"),
@@ -50,6 +53,7 @@ class SetVolume(ActionBase):
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
         self.scale_row.scale.connect("value-changed", self.on_volume_change)
+        self.switch_row.connect("notify::active", self.on_switch_change)
 
         self.load_config_settings()
 
@@ -87,12 +91,23 @@ class SetVolume(ActionBase):
         settings["device"] = name
         self.set_settings(settings)
 
+        self.set_information_label(settings.get("show-information"), settings.get("volume_change"), name)
+
     def on_volume_change(self, scale):
         volume = scale.get_value()
         scale.set_tooltip_text(str(volume))
         settings = self.get_settings()
         settings["volume_change"] = volume
         self.set_settings(settings)
+
+        self.set_information_label(settings.get("show-information"), volume, settings.get("device"))
+
+    def on_switch_change(self, switch, gstate):
+        state = switch.get_active()
+        settings = self.get_settings()
+        settings["show-information"] = state
+        self.set_settings(settings)
+        self.set_information_label(state, settings.get("volume_change"), settings.get("device"))
 
     #
     # HELPER FUNCTIONS
@@ -113,6 +128,8 @@ class SetVolume(ActionBase):
         settings = self.get_settings()
         device_name = settings.get("device")
         volume_change = settings.get("volume_change")
+        show_information = settings.get("show-information")
+
         for i, device in enumerate(self.device_model):
             if device[0] == device_name:
                 self.device_row.combo_box.set_active(i)
@@ -122,6 +139,10 @@ class SetVolume(ActionBase):
             self.device_row.combo_box.set_active(-1)
         if volume_change is not None:
             self.scale_row.scale.set_value(volume_change)
+        if show_information:
+            self.switch_row.set_active(show_information)
+
+        self.set_information_label(show_information, volume_change, device_name)
 
     def filter_proplist(self, proplist) -> [str, None]:
         name = proplist.get("node.name")
@@ -129,3 +150,11 @@ class SetVolume(ActionBase):
         if name is None or "alsa" in name:
             name = proplist.get("device.product.name", proplist.get("device.description"))
         return name
+
+    def set_information_label(self, state, volume, device):
+        if state is not None and state is True:
+            self.set_bottom_label(str(volume or ""))
+            self.set_top_label(device or "")
+        else:
+            self.set_bottom_label("")
+            self.set_top_label("")
