@@ -32,7 +32,8 @@ class VolumeAdjust(ActionBase):
     #
 
     def on_ready(self):
-        self.HAS_CONFIGURATION = True
+        self.has_configuration = True
+
         settings = self.get_settings()
         volume = self.get_settings().get("volume_change")
         self.set_volume_label(settings.get("display"), volume)
@@ -44,12 +45,10 @@ class VolumeAdjust(ActionBase):
         # Device Dropdown
         self.device_row = ComboRow(title=self.plugin_base.lm.get("actions.adjust-vol.combo.title"),
                                    model=self.device_model)
-
         # Volume Slider
         self.scale_row = ScaleRow(title=self.plugin_base.lm.get("actions.adjust-vol.scale.title"), value=0, min=-25, max=25, step=1, text_left="-25", text_right="+25")
 
         self.switch_row = Adw.SwitchRow(title=self.plugin_base.lm.get("actions.adjust-vol.switch.title"))
-
 
         self.device_cell_renderer = Gtk.CellRendererText()
         self.device_row.combo_box.pack_start(self.device_cell_renderer, True)
@@ -83,8 +82,6 @@ class VolumeAdjust(ActionBase):
                     continue
 
                 pulse.volume_change_all_chans(sink, volume_change * 0.01)
-                # volumes = [max(vol + volume_change * 0.01, 0) for vol in sink.volume.values]
-                #self.plugin_base.pulse.volume_set(sink, pulsectl.PulseVolumeInfo(volumes, len(volumes)))
                 break
 
     #

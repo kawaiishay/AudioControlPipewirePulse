@@ -43,6 +43,9 @@ class SetVolume(ActionBase):
         self.device_row.combo_box.pack_start(self.device_cell_renderer, True)
         self.device_row.combo_box.add_attribute(self.device_cell_renderer, "text", 0)
 
+        # TODO: MAKE NICE
+        self.switch_row = Adw.SwitchRow(title="Show Volume Information")
+
         self.load_device_model()
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
@@ -50,7 +53,7 @@ class SetVolume(ActionBase):
 
         self.load_config_settings()
 
-        return [self.device_row, self.scale_row]
+        return [self.device_row, self.scale_row, self.switch_row]
 
     def on_key_down(self):
         settings = self.get_settings()

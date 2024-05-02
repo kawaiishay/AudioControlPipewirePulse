@@ -31,11 +31,14 @@ class VolumeDisplay(ActionBase):
     #
 
     def on_ready(self):
-        self.HAS_CONFIGURATION = True
+        self.has_configuration = True
         device_name = self.get_settings().get("device")
         self.sink_index = -1
         self.text = ""
-        self.plugin_base.observer.add_observer(self.on_sink_change)
+
+        self.plugin_base.connect_to_event("com_gapls_AudioControl::PulseEvent", self.on_sink_change)
+
+        #self.plugin_base.observer.add_observer(self.on_sink_change)
 
         if device_name is None:
             return
@@ -90,7 +93,12 @@ class VolumeDisplay(ActionBase):
                     self.set_volume_text(sink.volume.values)
                     break
 
-    def on_sink_change(self, event):
+    def on_sink_change(self, *args, **kwargs):
+        if len(args) < 2:
+            return
+
+        event = args[1]
+
         if event.index == self.sink_index:
             with pulsectl.Pulse("volume-changer-vd-event") as pulse:
                 for sink in pulse.sink_list():
