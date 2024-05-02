@@ -4,6 +4,7 @@ import threading
 
 import pulsectl
 
+from src.backend.PluginManager.EventHolder import EventHolder
 from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
 
@@ -12,7 +13,7 @@ from .actions.VolumeAdjust import VolumeAdjust
 from .actions.SetVolume import SetVolume
 from .actions.Mute import Mute
 from .actions.VolumeDisplay import VolumeDisplay
-from .internal.Observer import Observer
+from .internal.PulseEventListener import PulseEvent
 
 
 class AudioControl(PluginBase):
@@ -53,23 +54,14 @@ class AudioControl(PluginBase):
         )
         self.add_action_holder(self.volume_display_action_holder)
 
+
+        self.pulse_event_holder = PulseEvent(
+            plugin_base=self,
+            event_id="com_gapls_AudioControl::PulseEvent"
+        )
+        self.add_event_holder(self.pulse_event_holder)
+
         self.register()
 
     def init_vars(self):
         self.lm = self.locale_manager
-        self.lm.set_to_os_default()
-        self.observer = Observer()
-
-        pulse_event_loop = threading.Thread(target=self.start_event_loop)
-        pulse_event_loop.daemon = True
-        pulse_event_loop.start()
-
-    def start_event_loop(self):
-        self.loop()
-
-    def loop(self):
-        with pulsectl.Pulse("volume-controller-event-loop") as pulse:
-            pulse.event_mask_set("sink")
-            pulse.event_callback_set(lambda event: self.observer.notify_observers(event))
-            while True:
-                pulse.event_listen()
