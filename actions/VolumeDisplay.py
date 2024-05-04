@@ -1,4 +1,6 @@
 # Import StreamController modules
+from .VolumeAction import VolumeAction
+
 try:
     from GtkHelper.GtkHelper import ScaleRow
 except ImportError:
@@ -20,42 +22,29 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw
 
-class VolumeDisplay(ActionBase):
+class VolumeDisplay(VolumeAction):
     def __init__(self, action_id: str, action_name: str,
                  deck_controller: DeckController, page: Page, coords: str, plugin_base: PluginBase):
         super().__init__(action_id=action_id, action_name=action_name,
             deck_controller=deck_controller, page=page, coords=coords, plugin_base=plugin_base)
+
+        self.has_configuration = True
+        self.plugin_base.connect_to_event("com_gapls_AudioControl::PulseEvent", self.on_sink_change)
 
     #
     # OVERRIDDEN
     #
 
     def on_ready(self):
-        self.has_configuration = True
-        device_name = self.get_settings().get("device")
+        settings = self.get_settings()
+
+        self.device_name = settings.get("device")
+
         self.sink_index = -1
-        self.text = ""
+        self.sink_name = None
+        self.show_info = True
 
-        self.plugin_base.connect_to_event("com_gapls_AudioControl::PulseEvent", self.on_sink_change)
-
-        #self.plugin_base.observer.add_observer(self.on_sink_change)
-
-        if device_name is None:
-            return
-
-        # Needed so that pulse doesnt throw an error
-        with pulsectl.Pulse("volume-controller-volume-display") as pulse:
-            for sink in pulse.sink_list():
-                name = self.filter_proplist(sink.proplist)
-
-                if name == device_name:
-                    self.sink_index = sink.index
-                    self.set_volume_text(sink.volume.values)
-                    break
-
-    def on_tick(self):
-        self.set_bottom_label(self.text)
-        self.set_top_label(self.get_settings().get("device"))
+        self.load_initial_data()
 
     def get_config_rows(self) -> list:
         self.device_model = Gtk.ListStore.new([str])  # First Column: Name,
@@ -79,19 +68,23 @@ class VolumeDisplay(ActionBase):
     #
 
     def on_device_change(self, combo_box, *args):
-        device_name = self.device_model[combo_box.get_active()][0]
         settings = self.get_settings()
-        settings["device"] = device_name
+
+        self.device_name = self.device_model[combo_box.get_active()][0]
+
+        for sink in self.plugin_base.pulse.sink_list():
+            name = self.filter_proplist(sink.proplist)
+
+            if name == self.device_name:
+                self.sink_index = sink.index
+                self.sink_name = sink.name
+                self.update_volume_info(sink)
+                break
+
+        self.update_labels()
+
+        settings["device"] = self.device_name
         self.set_settings(settings)
-
-        with pulsectl.Pulse("volume-controller-vd-device") as pulse:
-            for sink in pulse.sink_list():
-                name = self.filter_proplist(sink.proplist)
-
-                if name == device_name:
-                    self.sink_index = sink.index
-                    self.set_volume_text(sink.volume.values)
-                    break
 
     def on_sink_change(self, *args, **kwargs):
         if len(args) < 2:
@@ -100,11 +93,9 @@ class VolumeDisplay(ActionBase):
         event = args[1]
 
         if event.index == self.sink_index:
-            with pulsectl.Pulse("volume-changer-vd-event") as pulse:
-                for sink in pulse.sink_list():
-                    if sink.index == self.sink_index:
-                        self.set_volume_text(sink.volume.values)
-                        break
+            sink = self.plugin_base.pulse.get_sink_by_name(self.sink_name)
+            self.update_volume_info(sink)
+            self.update_labels()
 
     #
     # HELPER FUNCTIONS
@@ -112,34 +103,23 @@ class VolumeDisplay(ActionBase):
 
     def load_device_model(self):
         self.device_model.clear()
-        with pulsectl.Pulse("volume-changer-vd-model") as pulse:
-            for sink in pulse.sink_list():
-                proplist = sink.proplist
-                device_name = self.filter_proplist(proplist)
 
-                if device_name is None:
-                    continue
-                if device_name == self.get_settings().get("device"):
-                    self.sink_index = sink.index
-                self.device_model.append([device_name])
+        for sink in self.plugin_base.pulse.sink_list():
+            device_name = self.filter_proplist(sink.proplist)
+
+            if device_name is None:
+                continue
+
+            self.device_model.append([device_name])
 
     def load_config_settings(self):
-        settings = self.get_settings()
-        device_name = settings.get("device")
         for i, device in enumerate(self.device_model):
-            if device[0] == device_name:
+            if device[0] == self.device_name:
                 self.device_row.combo_box.set_active(i)
                 break
 
-        if device_name is None:
+        if self.device_name is None:
             self.device_row.combo_box.set_active(-1)
-
-    def filter_proplist(self, proplist) -> [str, None]:
-        name = proplist.get("node.name")
-
-        if name is None or "alsa" in name:
-            name = proplist.get("device.product.name", proplist.get("device.description"))
-        return name
 
     def set_volume_text(self, volumes):
         volumes = [int(vol * 100) for vol in volumes]
@@ -147,3 +127,24 @@ class VolumeDisplay(ActionBase):
             self.text = ""
         else:
             self.text = f'{volumes[0]}%'
+
+    def load_initial_data(self):
+        if self.device_name:
+            with pulsectl.Pulse("initial-data-load") as pulse:
+                for sink in pulse.sink_list():
+                    name = self.filter_proplist(sink.proplist)
+
+                    if name == self.device_name:
+                        self.sink_index = sink.index
+                        self.sink_name = sink.name
+                        self.update_volume_info(sink)
+                        break
+
+        self.update_labels()
+
+    def update_volume_info(self, sink):
+        volumes = self.get_volumes_from_sink(sink)
+        if len(volumes) > 0:
+            self.info = str(int(volumes[0]))
+        else:
+            self.info = ""
