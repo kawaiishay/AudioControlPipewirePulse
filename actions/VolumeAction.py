@@ -24,26 +24,23 @@ class VolumeAction(ActionBase):
             self.set_bottom_label("")
 
     def filter_proplist(self, proplist) -> [str, None]:
-        '''
-        Alsa:
-        device.nick
-        device.vendor.name
-        device.description
+        if not proplist.get("alsa.card"):
+            node_name = proplist.get("node.name")
+            if not node_name:
+                node_name = self.filter_alsa(proplist)
+            return node_name
 
-        Non Alsa:
-        node.name
-        Then same stuff as Alsa
-        '''
+        # Now we know its alsa
+        device_name = self.filter_alsa(proplist)
 
-        name = proplist.get("node.name")
+        return device_name
 
-        if name is None or "alsa" in name:
-            name = proplist.get("device.product.name", proplist.get("device.description"))
-        return name
+    def filter_alsa(self, proplist):
+        return (proplist.get("device.product.name") or proplist.get("device.nick") or
+                proplist.get("device.vendor.name") or proplist.get("device.description") or None)
 
     def get_volumes_from_sink(self, sink: PulseSinkInfo) -> list[int]:
         sink_volumes = sink.volume.values
-
         volumes = [round(vol * 100) for vol in sink_volumes]
 
         return volumes
