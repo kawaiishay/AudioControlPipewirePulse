@@ -1,17 +1,21 @@
 {
  "actions.adjust-vol.name": "Lautstärke Einstellen",
-  "actions.set-vol.name": "Lautstärke Setzen",
-  "actions.mute.name": "Mute",
-  "actions.vd.name": "Lautstärke Anzeigen",
+ "actions.set-vol.name": "Lautstärke Setzen",
+ "actions.mute.name": "Stummschalten",
+ "actions.vd.name": "Lautstärke Anzeigen",
 
-  "actions.adjust-vol.combo.title": "Audiogerät",
-  "actions.adjust-vol.scale.title": "Lautstärke Änderung",
-  "actions.adjust-vol.switch.title": "Änderung Anzeigen",
+ "actions.adjust-vol.combo.title": "Audiogerät",
+ "actions.adjust-vol.scale.title": "Lautstärke Änderung",
+ "actions.adjust-vol.device-switch.title": "Zeige Gerätenamen",
+  "actions.adjust-vol.volume-switch.title": "Lautstärkeanpassung anzeigen",
 
-  "actions.set-vol.combo.title": "Audiogerät",
-  "actions.set-vol.scale.title": "Lautstärke Setzen",
+ "actions.set-vol.combo.title": "Audiogerät",
+ "actions.set-vol.scale.title": "Lautstärke Setzen",
+ "actions.set-vol.switch.title": "Zeige Lautstärke-Einstellwert",
 
-  "actions.mute.combo.title": "Audiogerät",
+ "actions.mute.combo.title": "Audiogerät",
+ "actions.mute.device.switch.title": "Zeige Gerätenamen",
+ "actions.mute.volume.switch.title": "Zeige Lautstärke",
 
-  "actions.vd.combo.title": "Audiogerät"
+ "actions.vd.combo.title": "Audiogerät"
 }
