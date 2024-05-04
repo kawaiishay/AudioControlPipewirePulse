@@ -1,6 +1,6 @@
 import threading
-import pulsectl
 
+import pulsectl
 from src.backend.PluginManager.EventHolder import EventHolder
 
 

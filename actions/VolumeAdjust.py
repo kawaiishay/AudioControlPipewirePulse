@@ -7,7 +7,6 @@ except ImportError:
     from ..internal.ScaleRow import ScaleRow
 
 from GtkHelper.GtkHelper import ComboRow
-from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.DeckManagement.DeckController import DeckController
 from src.backend.PageManagement.Page import Page
 from src.backend.PluginManager.PluginBase import PluginBase

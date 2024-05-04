@@ -1,9 +1,9 @@
+from pulsectl import PulseSinkInfo
 from src.backend.DeckManagement.DeckController import DeckController
 from src.backend.PageManagement.Page import Page
 from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.PluginManager.PluginBase import PluginBase
 
-from pulsectl import PulseSinkInfo
 
 class VolumeAction(ActionBase):
     def __init__(self, action_id: str, action_name: str,

@@ -7,20 +7,19 @@ except ImportError:
     from ..internal.ScaleRow import ScaleRow
 
 from GtkHelper.GtkHelper import ComboRow
-from src.backend.PluginManager.ActionBase import ActionBase
 from src.backend.DeckManagement.DeckController import DeckController
 from src.backend.PageManagement.Page import Page
 from src.backend.PluginManager.PluginBase import PluginBase
 import pulsectl
 
 # Import python modules
-import os
 
 # Import gtk modules - used for the config rows
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk
+
 
 class VolumeDisplay(VolumeAction):
     def __init__(self, action_id: str, action_name: str,

@@ -1,17 +1,13 @@
 # Import StreamController modules
-import asyncio
-import threading
 
 import pulsectl
-
-from src.backend.PluginManager.EventHolder import EventHolder
-from src.backend.PluginManager.PluginBase import PluginBase
 from src.backend.PluginManager.ActionHolder import ActionHolder
+from src.backend.PluginManager.PluginBase import PluginBase
 
+from .actions.Mute import Mute
+from .actions.SetVolume import SetVolume
 # Import actions
 from .actions.VolumeAdjust import VolumeAdjust
-from .actions.SetVolume import SetVolume
-from .actions.Mute import Mute
 from .actions.VolumeDisplay import VolumeDisplay
 from .internal.PulseEventListener import PulseEvent
 
