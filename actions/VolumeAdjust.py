@@ -80,7 +80,7 @@ class VolumeAdjust(VolumeAction):
         return [self.device_row, self.scale_row, self.device_switch, self.volume_switch]
 
     def on_key_down(self):
-        if None in (self.device_name, self.volume_adjust):
+        if None in (self.device_name, self.volume_adjust) or not self.sink_name:
             self.show_error(1)
             return
 
@@ -183,11 +183,12 @@ class VolumeAdjust(VolumeAction):
 
     def load_initial_data(self):
         if self.device_name:
-            for sink in self.plugin_base.pulse.sink_list():
-                name = self.filter_proplist(sink.proplist)
+            with pulsectl.Pulse("initial-data-load") as pulse:
+                for sink in pulse.sink_list():
+                    name = self.filter_proplist(sink.proplist)
 
-                if name == self.device_name:
-                    self.sink_name = sink.name
+                    if name == self.device_name:
+                        self.sink_name = sink.name
 
         self.info = ("+" if self.volume_adjust > 0 else "") + str(self.volume_adjust)
         self.set_image()
