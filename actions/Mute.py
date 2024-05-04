@@ -40,8 +40,9 @@ class Mute(VolumeAction):
         # LOAD VALUES FROM SETTINGS
         # device, show-info
 
-        self.device_name = self.get_settings().get("device")
-        self.show_info = self.get_settings().get("show-info") or False
+        settings = self.get_settings()
+        self.device_name = settings.get("device")
+        self.show_info = settings.get("show-info") or False
 
         self.sink_index = -1
         self.sink_name = None  # Used for faster Lookups / Less Code
@@ -136,10 +137,8 @@ class Mute(VolumeAction):
 
         if event.index == self.sink_index:
             with pulsectl.Pulse("volume-changer-mute-event") as pulse:
-                for sink in pulse.sink_list():
-                    if sink.index == self.sink_index:
-                        self.set_image(sink.mute)
-                        break
+                sink = pulse.get_sink_by_name(self.sink_name)
+                self.set_image(sink.mute)
 
     #
     # MODELS
