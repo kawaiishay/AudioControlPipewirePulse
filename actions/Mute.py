@@ -81,26 +81,16 @@ class Mute(VolumeAction):
         return [self.device_row, self.device_switch, self.volume_switch]
 
     def on_key_down(self):
-        settings = self.get_settings()
-        device_name = settings.get("device")
-
-        if device_name is None:
+        if self.device_name is None or not self.sink_name:
             self.show_error(1)
             return
 
-        with pulsectl.Pulse("volume-changer-mute-key") as pulse:
-            for sink in pulse.sink_list():
-                proplist = sink.proplist
-                name = self.filter_proplist(proplist)
+        sink = self.plugin_base.pulse.get_sink_by_name(self.sink_name)
 
-                if name != device_name:
-                    continue
+        mute_state = 1 if sink.mute == 0 else 0
 
-                mute_state = 1 if sink.mute == 0 else 0
-
-                pulse.mute(sink, mute_state)
-                self.set_image(mute_state)
-                break
+        self.plugin_base.pulse.mute(sink, mute_state)
+        self.set_image(mute_state)
 
     #
     # CUSTOM EVENTS
@@ -194,16 +184,17 @@ class Mute(VolumeAction):
 
         # Sets the Mute Image based on the Device Name
         if self.device_name:
-            for sink in self.plugin_base.pulse.sink_list():
-                name = self.filter_proplist(sink.proplist)
+            with pulsectl.Pulse("initial-data-load") as pulse:
+                for sink in pulse.sink_list():
+                    name = self.filter_proplist(sink.proplist)
 
-                if name == self.device_name:
-                    # Sets the Sink Index and Sink Name
-                    self.sink_index = sink.index
-                    self.sink_name = sink.name
+                    if name == self.device_name:
+                        # Sets the Sink Index and Sink Name
+                        self.sink_index = sink.index
+                        self.sink_name = sink.name
 
-                    self.set_image(sink.mute)
-                    break
+                        self.set_image(sink.mute)
+                        break
 
         # Displays Specified Information on Labels
         self.update_labels()
