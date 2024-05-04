@@ -65,3 +65,4 @@ class AudioControl(PluginBase):
 
     def init_vars(self):
         self.lm = self.locale_manager
+        self.pulse = pulsectl.Pulse("audio-control-main")
