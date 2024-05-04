@@ -42,7 +42,11 @@ class Mute(VolumeAction):
 
         settings = self.get_settings()
         self.device_name = settings.get("device")
-        self.show_info = settings.get("show-info") or False
+
+        self.show_device = settings.get("show-device") or False
+        self.show_volume = settings.get("show-volume") or False
+
+        self.show_info = (self.show_device or self.show_volume) or False  # Makes it so either one of the switches needs to be on
 
         self.sink_index = -1
         self.sink_name = None  # Used for faster Lookups / Less Code
@@ -63,16 +67,18 @@ class Mute(VolumeAction):
         self.device_row.combo_box.pack_start(self.device_cell_renderer, True)
         self.device_row.combo_box.add_attribute(self.device_cell_renderer, "text", 0)
 
-        self.info_switch = Adw.SwitchRow(title="Show Information")  # Todo: Change with translations
+        self.device_switch = Adw.SwitchRow(title=self.plugin_base.lm.get("actions.mute.device.switch.title"))
+        self.volume_switch = Adw.SwitchRow(title=self.plugin_base.lm.get("actions.mute.volume.switch.title"))
 
         self.load_device_model()
 
         self.device_row.combo_box.connect("changed", self.on_device_change)
-        self.info_switch.connect("notify::active", self.on_switch_change)
+        self.device_switch.connect("notify::active", self.on_switch_change)
+        self.volume_switch.connect("notify::active", self.on_switch_change)
 
         self.load_config_settings()
 
-        return [self.device_row, self.info_switch]
+        return [self.device_row, self.device_switch, self.volume_switch]
 
     def on_key_down(self):
         settings = self.get_settings()
@@ -105,11 +111,12 @@ class Mute(VolumeAction):
         self.device_name = self.device_model[combo_box.get_active()][0]
 
         for sink in self.plugin_base.pulse.sink_list():
-            name = self.filter_proplist(sink.proplist)
+            device_name = self.filter_proplist(sink.proplist)
 
-            if name == self.device_name:
+            if device_name == self.device_name:
                 self.sink_index = sink.index
                 self.sink_name = sink.name
+                self.device_name = device_name
 
                 self.set_image(sink.mute)
                 break
@@ -122,11 +129,14 @@ class Mute(VolumeAction):
     def on_switch_change(self, *args, **kwargs):
         settings = self.get_settings()
 
-        switch_state = self.info_switch.get_active()
-        self.show_info = switch_state
+        self.show_device = self.device_switch.get_active()
+        self.show_volume = self.volume_switch.get_active()
+
+        self.show_info = (self.show_device or self.show_volume) or False
         self.update_labels()
 
-        settings["show-info"] = switch_state
+        settings["show-device"] = self.show_device
+        settings["show-volume"] = self.show_volume
         self.set_settings(settings)
 
     async def on_sink_change(self, *args, **kwargs):
@@ -139,6 +149,7 @@ class Mute(VolumeAction):
             with pulsectl.Pulse("volume-changer-mute-event") as pulse:
                 sink = pulse.get_sink_by_name(self.sink_name)
                 self.set_image(sink.mute)
+                self.update_labels()
 
     #
     # MODELS
@@ -164,7 +175,14 @@ class Mute(VolumeAction):
                 self.device_row.combo_box.set_active(i)
                 break
 
-        self.info_switch.set_active(self.show_info)
+        self.device_switch.disconnect_by_func(self.on_switch_change)
+        self.volume_switch.disconnect_by_func(self.on_switch_change)
+
+        self.device_switch.set_active(self.show_device)
+        self.volume_switch.set_active(self.show_volume)
+
+        self.device_switch.connect("notify::active", self.on_switch_change)
+        self.volume_switch.connect("notify::active", self.on_switch_change)
 
         if self.device_name is None:
             self.device_row.combo_box.set_active(-1)
@@ -199,3 +217,24 @@ class Mute(VolumeAction):
             self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "mute.png"))
         else:
             self.set_media(media_path=os.path.join(self.plugin_base.PATH, "assets", "audio.png"))
+
+    def update_labels(self):
+        if self.show_device:
+            self.set_top_label(self.device_name)
+        else:
+            self.set_top_label("")
+
+        try:
+            sink = self.plugin_base.pulse.get_sink_by_name(self.sink_name)
+            self.update_volume_info(sink)
+        except:
+            self.show_error(1)
+
+        self.set_bottom_label(self.info)
+
+    def update_volume_info(self, sink):
+        volumes = self.get_volumes_from_sink(sink)
+        if len(volumes) > 0 and self.show_volume:
+            self.info = str(int(volumes[0]))
+        else:
+            self.info = ""
