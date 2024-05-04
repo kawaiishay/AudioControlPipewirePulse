@@ -44,6 +44,6 @@ class VolumeAction(ActionBase):
     def get_volumes_from_sink(self, sink: PulseSinkInfo) -> list[int]:
         sink_volumes = sink.volume.values
 
-        volumes = [int(vol * 100) for vol in sink_volumes]
+        volumes = [round(vol * 100) for vol in sink_volumes]
 
         return volumes
