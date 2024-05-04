@@ -38,8 +38,8 @@ class SetVolume(VolumeAction):
         settings = self.get_settings()
 
         self.device_name = settings.get("device")
-        self.show_info = settings.get("show-info")
-        self.volume_change = settings.get("volume-change")
+        self.show_info = settings.get("show-info") or False
+        self.volume_change = settings.get("volume-change") or 0
 
         self.sink_name = None
 
@@ -70,7 +70,7 @@ class SetVolume(VolumeAction):
         return [self.device_row, self.scale_row, self.info_switch]
 
     def on_key_down(self):
-        if None in (self.device_name, self.volume_change):
+        if None in (self.device_name, self.volume_change) or not self.sink_name:
             self.show_error(1)
             return
 
@@ -152,11 +152,12 @@ class SetVolume(VolumeAction):
 
     def load_initial_data(self):
         if self.device_name:
-            for sink in self.plugin_base.pulse.sink_list():
-                name = self.filter_proplist(sink.proplist)
+            with pulsectl.Pulse("initial-data-load") as pulse:
+                for sink in pulse.sink_list():
+                    name = self.filter_proplist(sink.proplist)
 
-                if name == self.device_name:
-                    self.sink_name = sink.name
+                    if name == self.device_name:
+                        self.sink_name = sink.name
 
         self.info = str(int(self.volume_change or 0) or "0")
 
