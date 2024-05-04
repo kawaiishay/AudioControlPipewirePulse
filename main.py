@@ -52,7 +52,7 @@ class AudioControl(PluginBase):
             action_id="com_gapls_AudioControl::VolumeDisplay",  # Change this to your own plugin id
             action_name="Volume Display",
         )
-        self.add_action_holder(self.volume_display_action_holder)
+        #self.add_action_holder(self.volume_display_action_holder)
 
 
         self.pulse_event_holder = PulseEvent(
