@@ -1,4 +1,4 @@
-from pulsectl import PulseSinkInfo
+from pulsectl import PulseSinkInfo, PulseSourceInfo
 from src.backend.DeckManagement.DeckController import DeckController
 from src.backend.PageManagement.Page import Page
 from src.backend.PluginManager.ActionBase import ActionBase
@@ -37,10 +37,17 @@ class VolumeAction(ActionBase):
 
     def filter_alsa(self, proplist):
         return (proplist.get("device.product.name") or proplist.get("device.nick") or
-                proplist.get("device.vendor.name") or proplist.get("device.description") or None)
+                proplist.get("device.description") or None)
 
     def get_volumes_from_sink(self, sink: PulseSinkInfo) -> list[int]:
         sink_volumes = sink.volume.values
         volumes = [round(vol * 100) for vol in sink_volumes]
+
+        return volumes
+
+    def get_volumes_from_source(self, source: PulseSourceInfo):
+        source_volumes = source.volume.values
+
+        volumes = [round(vol * 100) for vol in source_volumes]
 
         return volumes
