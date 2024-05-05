@@ -28,7 +28,7 @@ class VolumeDisplay(VolumeAction):
             deck_controller=deck_controller, page=page, coords=coords, plugin_base=plugin_base)
 
         self.has_configuration = True
-        self.plugin_base.connect_to_event("com_gapls_AudioControl::PulseEvent", self.on_sink_change)
+        self.plugin_base.connect_to_event("com_gapls_AudioControl::PulseSinkEvent", self.on_sink_change)
 
     #
     # OVERRIDDEN
@@ -92,9 +92,13 @@ class VolumeDisplay(VolumeAction):
         event = args[1]
 
         if event.index == self.sink_index:
-            sink = self.plugin_base.pulse.get_sink_by_name(self.sink_name)
-            self.update_volume_info(sink)
-            self.update_labels()
+            with pulsectl.Pulse("volume-display-event") as pulse:
+                try:
+                    sink = pulse.get_sink_by_name(self.sink_name)
+                    self.update_volume_info(sink)
+                    self.update_labels()
+                except:
+                    self.show_error(1)
 
     #
     # HELPER FUNCTIONS

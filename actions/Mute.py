@@ -28,7 +28,7 @@ class Mute(VolumeAction):
             deck_controller=deck_controller, page=page, coords=coords, plugin_base=plugin_base)
 
         self.has_configuration = True
-        self.plugin_base.connect_to_event(event_id="com_gapls_AudioControl::PulseEvent", callback=self.on_sink_change)
+        self.plugin_base.connect_to_event(event_id="com_gapls_AudioControl::PulseSinkEvent", callback=self.on_sink_change)
 
     #
     # OVERRIDDEN
@@ -136,10 +136,13 @@ class Mute(VolumeAction):
         event = args[1]
 
         if event.index == self.sink_index:
-            with pulsectl.Pulse("volume-changer-mute-event") as pulse:
-                sink = pulse.get_sink_by_name(self.sink_name)
-                self.set_image(sink.mute)
-                self.update_labels()
+            with pulsectl.Pulse("mute-event") as pulse:
+                try:
+                    sink = pulse.get_sink_by_name(self.sink_name)
+                    self.set_image(sink.mute)
+                    self.update_labels()
+                except:
+                    self.show_error(1)
 
     #
     # MODELS
@@ -221,7 +224,10 @@ class Mute(VolumeAction):
         except:
             self.show_error(1)
 
-        self.set_bottom_label(self.info)
+        if self.show_volume:
+            self.set_bottom_label(self.info)
+        else:
+            self.set_bottom_label("")
 
     def update_volume_info(self, sink):
         volumes = self.get_volumes_from_sink(sink)
