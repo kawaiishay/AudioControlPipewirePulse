@@ -17,5 +17,9 @@
  "actions.mute.device.switch.title": "Zeige Gerätenamen",
  "actions.mute.volume.switch.title": "Zeige Lautstärke",
 
+ "actions.mic-mute.combo.title": "Audiogerät",
+ "actions.mic-mute.device.switch.title": "Zeige Gerätenamen",
+ "actions.mic-mute.volume.switch.title": "Zeige Lautstärke",
+
  "actions.vd.combo.title": "Audiogerät"
 }

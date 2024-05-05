@@ -3,6 +3,7 @@
 import pulsectl
 from src.backend.PluginManager.ActionHolder import ActionHolder
 from src.backend.PluginManager.PluginBase import PluginBase
+from .actions.MicMute import MicMute
 
 from .actions.Mute import Mute
 from .actions.SetVolume import SetVolume
@@ -50,12 +51,29 @@ class AudioControl(PluginBase):
         )
         self.add_action_holder(self.volume_display_action_holder)
 
-
-        self.pulse_event_holder = PulseEvent(
+        self.mic_mute_action_holder = ActionHolder(
             plugin_base=self,
-            event_id="com_gapls_AudioControl::PulseEvent"
+            action_base=MicMute,
+            action_id="com_gapls_AudioControl::MicMute",
+            action_name="Mic Mute"
         )
-        self.add_event_holder(self.pulse_event_holder)
+        self.add_action_holder(self.mic_mute_action_holder)
+
+        # Events
+
+        self.pulse_sink_event_holder = PulseEvent(
+            plugin_base=self,
+            event_id="com_gapls_AudioControl::PulseSinkEvent",
+            mask="sink"
+        )
+        self.add_event_holder(self.pulse_sink_event_holder)
+
+        self.pulse_source_event_holder = PulseEvent(
+            plugin_base=self,
+            event_id="com_gapls_AudioControl::PulseSourceEvent",
+            mask="source"
+        )
+        self.add_event_holder(self.pulse_source_event_holder)
 
         self.register()
 

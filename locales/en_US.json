@@ -17,5 +17,9 @@
   "actions.mute.device.switch.title": "Show Device",
   "actions.mute.volume.switch.title": "Show Volume",
 
+  "actions.mic-mute.combo.title": "Audio Device",
+  "actions.mic-mute.device.switch.title": "Show Device",
+  "actions.mic-mute.volume.switch.title": "Show Volume",
+
   "actions.vd.combo.title": "Audio Device"
 }
