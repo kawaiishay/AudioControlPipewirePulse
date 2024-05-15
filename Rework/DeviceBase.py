@@ -34,6 +34,9 @@ class DeviceBase(ActionBase):
         self.show_device_name: bool = False
         self.show_info: bool = False
 
+        # Every Action will have a Configuration so this works out fine
+        self.has_configuration = True
+
     def on_ready(self):
         self.load_essential_settings()
 
@@ -124,6 +127,7 @@ class DeviceBase(ActionBase):
             self.device_display_name = self.filter_proplist(device.proplist)
 
         self.display_device_name()
+        self.display_info()
 
     def load_ui_settings(self):
         for i, filter in enumerate(self.device_filter_model):
@@ -164,12 +168,14 @@ class DeviceBase(ActionBase):
 
         self.pulse_filter = self.device_filter_model[self.device_filter_row.combo_box.get_active()][1]
         self.device_display_name = None
+        self.info = None
 
         self.disconnect_events()
         self.load_device_model()
         self.connect_events()
 
         self.display_device_name()
+        self.display_info()
 
         settings["device-filter"] = self.pulse_filter
         settings["pulse-name"] = self.device_display_name
@@ -192,6 +198,7 @@ class DeviceBase(ActionBase):
                 break
 
         self.display_device_name()
+        self.display_info()
 
         settings["pulse-name"] = self.pulse_device_name
         self.set_settings(settings)
@@ -200,6 +207,7 @@ class DeviceBase(ActionBase):
         settings = self.get_settings()
 
         self.show_device_name = self.show_device_switch.get_active()
+        self.display_device_name()
 
         settings["show-device-name"] = self.show_device_name
         self.set_settings(settings)
@@ -208,6 +216,7 @@ class DeviceBase(ActionBase):
         settings = self.get_settings()
 
         self.show_info = self.show_info_switch.get_active()
+        self.display_info()
 
         settings["show-info"] = self.show_info
         self.set_settings(settings)
@@ -257,7 +266,23 @@ class DeviceBase(ActionBase):
     def display_device_name(self):
         if self.show_device_name:
             self.set_top_label(self.device_display_name)
+        else:
+            self.set_top_label("")
 
     def display_info(self):
         if self.show_info:
             self.set_bottom_label(self.info)
+        else:
+            self.set_bottom_label("")
+
+    #
+    # MISC
+    #
+
+    def get_volumes_from_device(self):
+        try:
+            device = self.get_device(self.pulse_filter)
+            device_volumes = device.volume.values
+            return [round(vol*100) for vol in device_volumes]
+        except:
+            return []
