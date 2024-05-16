@@ -1,25 +1,16 @@
 {
-  "actions.adjust-vol.name": "Volume Adjust",
-  "actions.set-vol.name": "Set Volume",
-  "actions.mute.name": "Mute",
-  "actions.vd.name": "Volume Display",
+  "action.name.mute": "Mute",
+  "action.name.set-volume": "Set Volume",
+  "action.name.adjust-volume": "Adjust Volume",
+  "action.name.volume-display": "Display Volume",
 
-  "actions.adjust-vol.combo.title": "Audio Device",
-  "actions.adjust-vol.scale.title": "Volume Adjust",
-  "actions.adjust-vol.device-switch.title": "Display Device Name",
-  "actions.adjust-vol.volume-switch.title": "Display Volume Adjust",
+  "action.base.filter": "Device Filter",
+  "action.base.device": "Device",
+  "action.base.show-device-name": "Device Name",
+  "action.base.show-info": "Show Info",
 
-  "actions.set-vol.combo.title": "Audio Device",
-  "actions.set-vol.scale.title": "Set Volume",
-  "actions.set-vol.switch.title": "Show Volume Set Value",
+  "action.adjust-volume.volume-adjust": "Volume Adjust",
 
-  "actions.mute.combo.title": "Audio Device",
-  "actions.mute.device.switch.title": "Show Device",
-  "actions.mute.volume.switch.title": "Show Volume",
-
-  "actions.mic-mute.combo.title": "Audio Device",
-  "actions.mic-mute.device.switch.title": "Show Device",
-  "actions.mic-mute.volume.switch.title": "Show Volume",
-
-  "actions.vd.combo.title": "Audio Device"
+  "action.set-volume.extend-volume": "Extend Volume",
+  "action.set-volume.volume": "Volume"
 }
