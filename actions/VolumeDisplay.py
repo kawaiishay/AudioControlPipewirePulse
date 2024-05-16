@@ -1,6 +1,6 @@
 import pulsectl
 
-from DeviceBase import DeviceBase
+from ..actions.DeviceBase import DeviceBase
 
 
 class VolumeDisplay(DeviceBase):

@@ -1,7 +1,7 @@
 import os
 
 import pulsectl
-from DeviceBase import DeviceBase
+from ..actions.DeviceBase import DeviceBase
 
 
 class Mute(DeviceBase):

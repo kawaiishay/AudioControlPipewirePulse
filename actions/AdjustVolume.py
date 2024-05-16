@@ -2,7 +2,7 @@ import os
 
 import gi
 from GtkHelper.GtkHelper import ScaleRow
-from DeviceBase import DeviceBase
+from ..actions.DeviceBase import DeviceBase
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
