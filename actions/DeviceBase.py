@@ -1,9 +1,10 @@
 import enum
 
+import gi
+import pulsectl
+
 from GtkHelper.GtkHelper import ComboRow
 from src.backend.PluginManager.ActionBase import ActionBase
-
-import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -45,9 +46,9 @@ class DeviceBase(ActionBase):
         self.device_model = Gtk.ListStore.new([str])
 
         # Create ComboRow
-        self.device_filter_row = ComboRow(title=self.plugin_base.lm.get("DEVICE FILTER"),
+        self.device_filter_row = ComboRow(title=self.plugin_base.lm.get("action.base.filter"),
                                           model=self.device_filter_model)
-        self.device_row = ComboRow(title=self.plugin_base.lm.get("DEVICE"),
+        self.device_row = ComboRow(title=self.plugin_base.lm.get("action.base.device"),
                                    model=self.device_model)
 
         # Set Combo Row Renderers
@@ -60,8 +61,8 @@ class DeviceBase(ActionBase):
         self.device_filter_row.combo_box.add_attribute(self.device_cell_renderer, "text", 0)
 
         # Basic Settings
-        self.show_device_switch = Adw.SwitchRow(title="SHOW DEVICE NAME")
-        self.show_info_switch = Adw.SwitchRow(title="SHOW INFO")
+        self.show_device_switch = Adw.SwitchRow(title=self.plugin_base.lm.get("action.base.show-device-name"))
+        self.show_info_switch = Adw.SwitchRow(title=self.plugin_base.lm.get("action.base.show-info"))
 
         # Load Models
         self.load_filter_model()
@@ -242,22 +243,24 @@ class DeviceBase(ActionBase):
                 proplist.get("device.description") or None)
 
     def get_device(self, filter: PulseFilter):
-        try:
-            if filter == PulseFilter.SINK:
-                return self.plugin_base.pulse.get_sink_by_name(self.pulse_device_name)
-            elif filter == PulseFilter.SOURCE:
-                return self.plugin_base.pulse.get_source_by_name(self.pulse_device_name)
-        except:
-            self.show_error(1)
+        with pulsectl.Pulse("device-getter") as pulse:
+
+            try:
+                if filter == PulseFilter.SINK:
+                    return pulse.get_sink_by_name(self.pulse_device_name)
+                elif filter == PulseFilter.SOURCE:
+                    return pulse.get_source_by_name(self.pulse_device_name)
+            except:
+                self.show_error(1)
         return None
 
     def get_device_list(self, filter: PulseFilter):
-        switch = {
-            PulseFilter.SINK: self.plugin_base.pulse.sink_list(),
-            PulseFilter.SOURCE: self.plugin_base.pulse.source_list(),
-        }
-
-        return switch.get(filter, {})
+        with pulsectl.Pulse("device-list-getter") as pulse:
+            switch = {
+                PulseFilter.SINK: pulse.sink_list(),
+                PulseFilter.SOURCE: pulse.source_list(),
+            }
+            return switch.get(filter, {})
 
     #
     # DISPLAY
@@ -283,6 +286,6 @@ class DeviceBase(ActionBase):
         try:
             device = self.get_device(self.pulse_filter)
             device_volumes = device.volume.values
-            return [round(vol*100) for vol in device_volumes]
+            return [round(vol * 100) for vol in device_volumes]
         except:
             return []
