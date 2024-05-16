@@ -1,7 +1,7 @@
 import gi
 
 from GtkHelper.GtkHelper import ScaleRow
-from data.plugins.AudioControl.actions.DeviceBase import DeviceBase
+from DeviceBase import DeviceBase
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")

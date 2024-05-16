@@ -1,6 +1,6 @@
 import pulsectl
 
-from data.plugins.AudioControl.actions.DeviceBase import DeviceBase
+from DeviceBase import DeviceBase
 
 
 class VolumeDisplay(DeviceBase):
