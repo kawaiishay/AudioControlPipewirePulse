@@ -1,7 +1,6 @@
 import os
 
 import pulsectl
-
 from data.plugins.AudioControl.actions.DeviceBase import DeviceBase
 
 

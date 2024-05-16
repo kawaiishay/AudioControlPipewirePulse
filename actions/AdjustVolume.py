@@ -1,7 +1,6 @@
 import os
 
 import gi
-
 from GtkHelper.GtkHelper import ScaleRow
 from data.plugins.AudioControl.actions.DeviceBase import DeviceBase
 

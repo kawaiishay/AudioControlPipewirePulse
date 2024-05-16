@@ -2,7 +2,6 @@ import enum
 
 import gi
 import pulsectl
-
 from GtkHelper.GtkHelper import ComboRow
 from src.backend.PluginManager.ActionBase import ActionBase
 
