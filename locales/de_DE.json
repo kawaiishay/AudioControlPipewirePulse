@@ -3,6 +3,7 @@
   "action.name.set-volume": "Set Volume",
   "action.name.adjust-volume": "Adjust Volume",
   "action.name.volume-display": "Display Volume",
+  "action.name.dial-controller": "Dial Controller",
 
   "action.base.filter": "Geräte Filter",
   "action.base.device": "Audiogerät",

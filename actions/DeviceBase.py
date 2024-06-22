@@ -3,6 +3,7 @@ import enum
 import gi
 import pulsectl
 from GtkHelper.GtkHelper import ComboRow
+from src.backend.DeckManagement.InputIdentifier import InputEvent, Input
 from src.backend.PluginManager.ActionBase import ActionBase
 
 gi.require_version("Gtk", "4.0")
@@ -104,6 +105,31 @@ class DeviceBase(ActionBase):
 
             if device_name is not None:
                 self.device_model.append([device_name])
+
+    def event_callback(self, event: InputEvent, data: dict = None):
+        if event == Input.Key.Events.DOWN:
+            self.on_key_down()
+        if event == Input.Key.Events.HOLD_START or event == Input.Dial.Events.HOLD_START:
+            self.on_key_hold_start()
+        if event == Input.Dial.Events.TURN_CW:
+            self.on_dial_turn(+1)
+        if event == Input.Dial.Events.TURN_CCW:
+            self.on_dial_turn(-1)
+        if event == Input.Dial.Events.DOWN:
+            self.on_dial_down()
+
+    #
+    # CUSTOM INPUT EVENTS
+    #
+
+    def on_key_hold_start(self):
+        self.load_essential_settings()
+
+    def on_dial_down(self):
+        pass
+
+    def on_dial_turn(self, direction: int):
+        pass
 
     #
     # BASE SETTINGS LOADER
@@ -261,6 +287,14 @@ class DeviceBase(ActionBase):
             }
             return switch.get(filter, {})
 
+    def get_volumes_from_device(self):
+        try:
+            device = self.get_device(self.pulse_filter)
+            device_volumes = device.volume.values
+            return [round(vol * 100) for vol in device_volumes]
+        except:
+            return []
+
     #
     # DISPLAY
     #
@@ -276,15 +310,3 @@ class DeviceBase(ActionBase):
             self.set_bottom_label(self.info)
         else:
             self.set_bottom_label("")
-
-    #
-    # MISC
-    #
-
-    def get_volumes_from_device(self):
-        try:
-            device = self.get_device(self.pulse_filter)
-            device_volumes = device.volume.values
-            return [round(vol * 100) for vol in device_volumes]
-        except:
-            return []
