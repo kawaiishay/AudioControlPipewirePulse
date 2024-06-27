@@ -251,21 +251,47 @@ class DeviceBase(ActionBase):
     # MISC
     #
 
-    def filter_proplist(self, proplist) -> [str, None]:
-        if not proplist.get("alsa.card"):
-            node_name = proplist.get("node.name")
-            if not node_name:
-                node_name = self.filter_alsa(proplist)
-            return node_name
+    def filter_proplist(self, proplist) -> str | None:
+        filters: list[str] = [
+            "alsa.card_name",
+            "alsa.long_card_name",
+            "node.name",
+            "node.nick",
+            "device.name",
+            "device.nick",
+            "device.description",
+            "device.serial"
+        ]
 
-        # Now we know its alsa
-        device_name = self.filter_alsa(proplist)
+        weights: list[(str, int)] = [
+            ('.', -50),
+            ('_', -10),
+            (':', -25),
+            (';', -100),
+            ('-', -5)
+        ]
 
-        return device_name
+        length_weight: int = -5
 
-    def filter_alsa(self, proplist):
-        return (proplist.get("device.product.name") or proplist.get("device.nick") or
-                proplist.get("device.description") or None)
+        minimal_weights: list[(int, str)] = []
+
+        for filter in filters:
+            out: str = proplist.get(filter)
+
+            if out is None or len(out) < 3:
+                continue
+            current_weight: int = 0
+
+            current_weight += sum(out.count(weight[0]) * weight[1] for weight in weights)
+            current_weight += (len(out) * length_weight)
+
+            minimal_weights.append((current_weight, out))
+
+        minimal_weights.sort(key=lambda x: x[0], reverse=True)
+
+        print(minimal_weights)
+
+        return minimal_weights[0][1] or None
 
     def get_device(self, filter: PulseFilter):
         with pulsectl.Pulse("device-getter") as pulse:
