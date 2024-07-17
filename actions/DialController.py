@@ -5,20 +5,74 @@ from ..actions.DeviceBase import DeviceBase
 import pulsectl
 from GtkHelper.GtkHelper import ScaleRow
 
+
+# noinspection PyInterpreter
 class DialController(DeviceBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.plugin_base.connect_to_event(event_id="com_gapls_AudioControl::PulseEvent",
                                           callback=self.on_pulse_device_change)
+        self.volume_adjust_scale: int = 1
 
     def on_ready(self):
         super().on_ready()
         self.update_mute_image()
 
+    def get_config_rows(self):
+        self.volume_adjust_scale = ScaleRow(title=self.plugin_base.lm.get("action.adjust-volume.volume-adjust"),
+                                            value=0,
+                                            min=1,
+                                            max=50,
+                                            step=1,
+                                            text_left="1",
+                                            text_right="50"
+                                            )
+
+        self.volume_adjust_scale.scale.set_draw_value(True)
+
+        base = super().get_config_rows()
+        base.append(self.volume_adjust_scale)
+
+        return base
+
+    #
+    # BASE SETTINGS LOADER
+    #
+
+    def load_essential_settings(self):
+        settings = self.get_settings()
+
+        self.volume_adjust = settings.get("volume-adjust", 1)
+
+        super().load_essential_settings()
+
+    def load_ui_settings(self):
+        self.volume_adjust_scale.scale.set_value(self.volume_adjust)
+
+        super().load_ui_settings()
+
     #
     # EVENTS
     #
+
+    def connect_events(self):
+        super().connect_events()
+
+        self.volume_adjust_scale.scale.connect("value-changed", self.on_volume_adjust_changed)
+
+    def disconnect_events(self):
+        super().disconnect_events()
+
+        self.volume_adjust_scale.scale.disconnect_by_func(self.on_volume_adjust_changed)
+
+    def on_volume_adjust_changed(self, *args, **kwargs):
+        settings = self.get_settings()
+
+        self.volume_adjust = self.volume_adjust_scale.scale.get_value()
+
+        settings["volume-adjust"] = self.volume_adjust
+        self.set_settings(settings)
 
     def on_device_changed(self, *args, **kwargs):
         super().on_device_changed(*args, **kwargs)
@@ -61,7 +115,7 @@ class DialController(DeviceBase):
 
         try:
             device = self.get_device(self.pulse_filter)
-            self.plugin_base.pulse.volume_change_all_chans(device, direction * 0.01)
+            self.plugin_base.pulse.volume_change_all_chans(device, (direction * self.volume_adjust) * 0.01)
         except:
             self.show_error(1)
 
