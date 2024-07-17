@@ -289,9 +289,9 @@ class DeviceBase(ActionBase):
 
         minimal_weights.sort(key=lambda x: x[0], reverse=True)
 
-        print(minimal_weights)
-
-        return minimal_weights[0][1] or None
+        if len(minimal_weights) > 0:
+            return minimal_weights[0][1] or None
+        return None
 
     def get_device(self, filter: PulseFilter):
         with pulsectl.Pulse("device-getter") as pulse:
