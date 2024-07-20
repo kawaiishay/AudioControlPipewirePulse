@@ -104,6 +104,10 @@ class AdjustVolume(DeviceBase):
         try:
             device = self.get_device(self.pulse_filter)
 
+            if self.volume_adjust < 0:
+                self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
+                return
+
             volumes = self.get_volumes_from_device()
 
             if len(volumes) > 0 and volumes[0] < self.volume_bounds:
