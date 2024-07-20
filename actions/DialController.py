@@ -13,7 +13,8 @@ class DialController(DeviceBase):
 
         self.plugin_base.connect_to_event(event_id="com_gapls_AudioControl::PulseEvent",
                                           callback=self.on_pulse_device_change)
-        self.volume_adjust_scale: int = 1
+        self.volume_adjust: int = 1
+        self.volume_bounds: int = 100
 
     def on_ready(self):
         super().on_ready()
@@ -31,8 +32,19 @@ class DialController(DeviceBase):
 
         self.volume_adjust_scale.scale.set_draw_value(True)
 
+        self.volume_bound_scale = ScaleRow(title=self.plugin_base.lm.get("action.adjust-volume.volume-bounds"),
+                                           value=100,
+                                           min=0,
+                                           max=150,
+                                           step=1,
+                                           text_left="0",
+                                           text_right="150")
+        self.volume_bound_scale.scale.set_draw_value(True)
+
         base = super().get_config_rows()
+
         base.append(self.volume_adjust_scale)
+        base.append(self.volume_bound_scale)
 
         return base
 
@@ -44,11 +56,13 @@ class DialController(DeviceBase):
         settings = self.get_settings()
 
         self.volume_adjust = settings.get("volume-adjust", 1)
+        self.volume_bounds = settings.get("volume-bounds", 100)
 
         super().load_essential_settings()
 
     def load_ui_settings(self):
         self.volume_adjust_scale.scale.set_value(self.volume_adjust)
+        self.volume_bound_scale.scale.set_value(self.volume_bounds)
 
         super().load_ui_settings()
 
@@ -60,11 +74,13 @@ class DialController(DeviceBase):
         super().connect_events()
 
         self.volume_adjust_scale.scale.connect("value-changed", self.on_volume_adjust_changed)
+        self.volume_bound_scale.scale.connect("value-changed", self.on_volume_bounds_changed)
 
     def disconnect_events(self):
         super().disconnect_events()
 
         self.volume_adjust_scale.scale.disconnect_by_func(self.on_volume_adjust_changed)
+        self.volume_bound_scale.scale.disconnect_by_func(self.on_volume_bounds_changed)
 
     def on_volume_adjust_changed(self, *args, **kwargs):
         settings = self.get_settings()
@@ -72,6 +88,14 @@ class DialController(DeviceBase):
         self.volume_adjust = self.volume_adjust_scale.scale.get_value()
 
         settings["volume-adjust"] = self.volume_adjust
+        self.set_settings(settings)
+
+    def on_volume_bounds_changed(self, *args, **kwargs):
+        settings = self.get_settings()
+
+        self.volume_bounds = self.volume_bound_scale.scale.get_value()
+
+        settings["volume-bounds"] = self.volume_bounds
         self.set_settings(settings)
 
     def on_device_changed(self, *args, **kwargs):
@@ -115,7 +139,18 @@ class DialController(DeviceBase):
 
         try:
             device = self.get_device(self.pulse_filter)
-            self.plugin_base.pulse.volume_change_all_chans(device, (direction * self.volume_adjust) * 0.01)
+
+            # Decreasing Volume
+            if direction < 0:
+                self.plugin_base.pulse.volume_change_all_chans(device, -self.volume_adjust * 0.01)
+                return
+
+            volumes = self.get_volumes_from_device()
+            if len(volumes) > 0 and volumes[0] < self.volume_bounds:
+                if volumes[0] + self.volume_adjust > self.volume_bounds and direction > 0:
+                    self.plugin_base.pulse.volume_set_all_chans(device, self.volume_bounds * 0.01)
+                else:
+                    self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
         except:
             self.show_error(1)
 

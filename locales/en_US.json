@@ -11,6 +11,7 @@
   "action.base.show-info": "Show Info",
 
   "action.adjust-volume.volume-adjust": "Volume Adjust",
+  "action.adjust-volume.volume-bounds": "Upper Volume Bound",
 
   "action.set-volume.extend-volume": "Extend Volume",
   "action.set-volume.volume": "Volume"

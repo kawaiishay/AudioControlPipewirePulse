@@ -11,6 +11,7 @@
   "action.base.show-info": "Info Anzeigen",
 
   "action.adjust-volume.volume-adjust": "Lautstärke Änderung",
+  "action.adjust-volume.volume-bounds": "Obere Lautstärke Grenze",
 
   "action.set-volume.extend-volume": "Lautsärke Erweitern",
   "action.set-volume.volume": "Lautstärke"
