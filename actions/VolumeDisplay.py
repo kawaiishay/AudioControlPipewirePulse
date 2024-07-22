@@ -1,5 +1,3 @@
-import pulsectl
-
 from ..actions.DeviceBase import DeviceBase
 
 
@@ -17,12 +15,10 @@ class VolumeDisplay(DeviceBase):
         event = args[1]
 
         if event.index == self.device_index:
-            with pulsectl.Pulse("mute-event") as pulse:
-                try:
-                    device = self.get_device(self.pulse_filter)
-                    self.display_info()
-                except:
-                    self.show_error(1)
+            try:
+                self.display_info()
+            except:
+                self.show_error(1)
 
     def display_info(self):
         volumes = self.get_volumes_from_device()

@@ -1,11 +1,13 @@
 import os
 
 import gi
+
 from GtkHelper.GtkHelper import ScaleRow
 from ..actions.DeviceBase import DeviceBase
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
+from loguru import logger as log
 
 
 class AdjustVolume(DeviceBase):
@@ -105,17 +107,21 @@ class AdjustVolume(DeviceBase):
             device = self.get_device(self.pulse_filter)
 
             if self.volume_adjust < 0:
-                self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
+                self.change_volume(device, self.volume_adjust)
+                # self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
                 return
 
             volumes = self.get_volumes_from_device()
 
             if len(volumes) > 0 and volumes[0] < self.volume_bounds:
                 if volumes[0] + self.volume_adjust > self.volume_bounds:
-                    self.plugin_base.pulse.volume_set_all_chans(device, self.volume_bounds * 0.01)
+                    self.set_volume(device, self.volume_bounds)
+                    # self.plugin_base.pulse.volume_set_all_chans(device, self.volume_bounds * 0.01)
                 else:
-                    self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
-        except:
+                    self.change_volume(device, self.volume_adjust)
+                    # self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
+        except Exception as e:
+            log.error(e)
             self.show_error(1)
 
     #

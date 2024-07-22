@@ -2,6 +2,8 @@ import enum
 
 import gi
 import pulsectl
+from loguru import logger as log
+
 from GtkHelper.GtkHelper import ComboRow
 from src.backend.DeckManagement.InputIdentifier import InputEvent, Input
 from src.backend.PluginManager.ActionBase import ActionBase
@@ -248,7 +250,7 @@ class DeviceBase(ActionBase):
         self.set_settings(settings)
 
     #
-    # MISC
+    # MISC AUDIO STUFF
     #
 
     def filter_proplist(self, proplist) -> str | None:
@@ -301,7 +303,8 @@ class DeviceBase(ActionBase):
                     return pulse.get_sink_by_name(self.pulse_device_name)
                 elif filter == PulseFilter.SOURCE:
                     return pulse.get_source_by_name(self.pulse_device_name)
-            except:
+            except Exception as e:
+
                 self.show_error(1)
         return None
 
@@ -320,6 +323,30 @@ class DeviceBase(ActionBase):
             return [round(vol * 100) for vol in device_volumes]
         except:
             return []
+
+    def change_volume(self, device, adjust):
+        with pulsectl.Pulse("change-volume") as pulse:
+            try:
+                pulse.volume_change_all_chans(device, adjust * 0.01)
+            except Exception as e:
+                log.error(e)
+                self.show_error(1)
+
+    def set_volume(self, device, volume):
+        with pulsectl.Pulse("change-volume") as pulse:
+            try:
+                pulse.volume_set_all_chans(device, volume * 0.01)
+            except Exception as e:
+                log.error(e)
+                self.show_error(1)
+
+    def mute(self, device, state):
+        with pulsectl.Pulse("change-volume") as pulse:
+            try:
+                pulse.mute(device, state)
+            except Exception as e:
+                log.error(e)
+                self.show_error(1)
 
     #
     # DISPLAY

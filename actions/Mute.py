@@ -1,6 +1,8 @@
 import os
 
 import pulsectl
+from loguru import logger as log
+
 from ..actions.DeviceBase import DeviceBase
 
 
@@ -48,9 +50,10 @@ class Mute(DeviceBase):
 
             mute_state = 1 if device.mute == 0 else 0
 
-            self.plugin_base.pulse.mute(device, mute_state)
+            self.mute(device, mute_state)
             self.display_mute_image(mute_state)
-        except:
+        except Exception as e:
+            log.error(e)
             self.show_error(1)
 
     #

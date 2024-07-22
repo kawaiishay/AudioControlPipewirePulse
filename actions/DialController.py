@@ -1,12 +1,11 @@
 import os
 
-from src.backend.PluginManager.ActionBase import ActionBase
-from ..actions.DeviceBase import DeviceBase
-import pulsectl
+from loguru import logger as log
+
 from GtkHelper.GtkHelper import ScaleRow
+from ..actions.DeviceBase import DeviceBase
 
 
-# noinspection PyInterpreter
 class DialController(DeviceBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -109,13 +108,13 @@ class DialController(DeviceBase):
         event = args[1]
 
         if event.index == self.device_index:
-            with pulsectl.Pulse("mute-event") as pulse:
-                try:
-                    device = self.get_device(self.pulse_filter)
-                    self.display_mute_image(device.mute)
-                    self.display_info()
-                except:
-                    self.show_error(1)
+            try:
+                device = self.get_device(self.pulse_filter)
+                self.display_mute_image(device.mute)
+                self.display_info()
+            except Exception as e:
+                log.error(e)
+                self.show_error(1)
 
     def on_dial_down(self):
         if self.pulse_device_name is None:
@@ -127,9 +126,11 @@ class DialController(DeviceBase):
 
             mute_state = 1 if device.mute == 0 else 0
 
-            self.plugin_base.pulse.mute(device, mute_state)
+            self.mute(device, mute_state)
+            # self.plugin_base.pulse.mute(device, mute_state)
             self.display_mute_image(mute_state)
-        except:
+        except Exception as e:
+            log.error(e)
             self.show_error(1)
 
     def on_dial_turn(self, direction: int):
@@ -142,16 +143,20 @@ class DialController(DeviceBase):
 
             # Decreasing Volume
             if direction < 0:
-                self.plugin_base.pulse.volume_change_all_chans(device, -self.volume_adjust * 0.01)
+                self.change_volume(device, -self.volume_adjust)
+                # self.plugin_base.pulse.volume_change_all_chans(device, -self.volume_adjust * 0.01)
                 return
 
             volumes = self.get_volumes_from_device()
             if len(volumes) > 0 and volumes[0] < self.volume_bounds:
                 if volumes[0] + self.volume_adjust > self.volume_bounds and direction > 0:
-                    self.plugin_base.pulse.volume_set_all_chans(device, self.volume_bounds * 0.01)
+                    self.set_volume(device, self.volume_bounds)
+                    # self.plugin_base.pulse.volume_set_all_chans(device, self.volume_bounds * 0.01)
                 else:
-                    self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
-        except:
+                    self.change_volume(device, self.volume_adjust)
+                    # self.plugin_base.pulse.volume_change_all_chans(device, self.volume_adjust * 0.01)
+        except Exception as e:
+            log.error(e)
             self.show_error(1)
 
     #
@@ -168,7 +173,8 @@ class DialController(DeviceBase):
         try:
             device = self.get_device(self.pulse_filter)
             self.display_mute_image(device.mute)
-        except:
+        except Exception as e:
+            log.error(e)
             self.show_error(1)
 
     def display_mute_image(self, mute_state):

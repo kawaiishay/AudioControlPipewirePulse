@@ -6,13 +6,14 @@ from ..actions.DeviceBase import DeviceBase
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw
+from loguru import logger as log
 
 
 class SetVolume(DeviceBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.volume_change: int = 0
+        self.volume: int = 0
         self.extend_volume: bool = False
 
     def get_config_rows(self):
@@ -41,7 +42,7 @@ class SetVolume(DeviceBase):
 
     def load_essential_settings(self):
         settings = self.get_settings()
-        self.volume_change = settings.get("volume", 0)
+        self.volume = settings.get("volume", 0)
         self.extend_volume = settings.get("volume-extend", False)
 
         super().load_essential_settings()
@@ -53,7 +54,7 @@ class SetVolume(DeviceBase):
             self.volume_scale.adjustment.set_upper(150)
             self.volume_scale.label_right.set_label("150")
 
-        self.volume_scale.scale.set_value(self.volume_change)
+        self.volume_scale.scale.set_value(self.volume)
 
         super().load_ui_settings()
 
@@ -92,22 +93,24 @@ class SetVolume(DeviceBase):
     def on_volume_changed(self, *args, **kwargs):
         settings = self.get_settings()
 
-        self.volume_change = self.volume_scale.scale.get_value()
+        self.volume = self.volume_scale.scale.get_value()
 
         self.display_info()
 
-        settings["volume"] = self.volume_change
+        settings["volume"] = self.volume
         self.set_settings(settings)
 
     def on_key_down(self):
-        if None in (self.pulse_device_name, self.volume_change):
+        if None in (self.pulse_device_name, self.volume):
             self.show_error(1)
             return
 
         try:
             device = self.get_device(self.pulse_filter)
-            self.plugin_base.pulse.volume_set_all_chans(device, self.volume_change * 0.01)
-        except:
+            self.set_volume(device, self.volume)
+            # self.plugin_base.pulse.volume_set_all_chans(device, self.volume_change * 0.01)
+        except Exception as e:
+            log.error(e)
             self.show_error(1)
 
     #
@@ -115,5 +118,5 @@ class SetVolume(DeviceBase):
     #
 
     def display_info(self):
-        self.info = str(self.volume_change)
+        self.info = str(self.volume)
         super().display_info()
