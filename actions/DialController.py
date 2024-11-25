@@ -116,7 +116,7 @@ class DialController(DeviceBase):
 
         self.behaviour = Behaviour(settings.get("behaviour", Behaviour.MUTE))
 
-        self.volume_adjust = settings.get("volume-adjust", 0)
+        self.volume_adjust = settings.get("volume-adjust", 1)
         self.volume_bounds = settings.get("volume-bounds", 100)
 
         self.volume = settings.get("volume", 0)

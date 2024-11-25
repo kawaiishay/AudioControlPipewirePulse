@@ -20,7 +20,7 @@ class AdjustVolume(DeviceBase):
         self.plugin_base.connect_to_event(event_id="com_gapls_AudioControl::PulseEvent",
                                           callback=self.on_pulse_device_change)
 
-        self.volume_adjust: int = 0
+        self.volume_adjust: int = 1
         self.volume_bounds: int = 100
 
     def build_ui(self, ui: Adw.PreferencesGroup = None) -> Adw.PreferencesGroup:
@@ -48,7 +48,7 @@ class AdjustVolume(DeviceBase):
 
         settings = self.get_settings()
 
-        self.volume_adjust = settings.get("volume-adjust", 0)
+        self.volume_adjust = settings.get("volume-adjust", 1)
         self.volume_bounds = settings.get("volume-bounds", 100)
         self.display_icon()
 
