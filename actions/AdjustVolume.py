@@ -82,6 +82,7 @@ class AdjustVolume(DeviceBase):
         self.volume_adjust = self.volume_adjust_scale.scale.get_value()
 
         self.display_info()
+        self.display_icon()
 
         settings["volume-adjust"] = self.volume_adjust
         self.set_settings(settings)
