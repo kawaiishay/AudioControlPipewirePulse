@@ -61,7 +61,7 @@ def get_device(filter: DeviceFilter, pulse_device_name):
             elif filter == DeviceFilter.SOURCE:
                 return pulse.get_source_by_name(pulse_device_name)
         except Exception as e:
-            log.error(e)
+            log.error(f"Error while getting device: {pulse_device_name} with filter: {filter}. Error: {e}")
             raise PulseError
     return None
 
@@ -80,7 +80,8 @@ def get_volumes_from_device(device_filter: DeviceFilter, pulse_device_name: str)
         device = get_device(device_filter, pulse_device_name)
         device_volumes = device.volume.values
         return [round(vol * 100) for vol in device_volumes]
-    except:
+    except Exception as e:
+        log.error(f"Error while getting volumes from device: {pulse_device_name} with filter: {device_filter}. Error: {e}")
         return []
 
 
@@ -89,7 +90,7 @@ def change_volume(device, adjust):
         try:
             pulse.volume_change_all_chans(device, adjust * 0.01)
         except Exception as e:
-            log.error(e)
+            log.error(f"Error while changing volume on device: {device.name}, adjustment is {adjust}. Error: {e}")
             raise PulseError
 
 
@@ -98,7 +99,7 @@ def set_volume(device, volume):
         try:
             pulse.volume_set_all_chans(device, volume * 0.01)
         except Exception as e:
-            log.error(e)
+            log.error(f"Error while setting volume on device: {device.name}, volume is {volume}. Error: {e}")
             raise PulseError
 
 
@@ -107,7 +108,7 @@ def mute(device, state):
         try:
             pulse.mute(device, state)
         except Exception as e:
-            log.error(e)
+            log.error(f"Error while muting device: {device.name}, state is {state}. Error: {e}")
             raise PulseError
 
 def get_standard_device(device_filter: DeviceFilter):
@@ -119,5 +120,5 @@ def get_standard_device(device_filter: DeviceFilter):
                 return get_device(device_filter, pulse.server_info().default_source_name)
             return None
         except Exception as e:
-            log.error(e)
+            log.error(f"Error while getting standard device for filter: {str(device_filter)}. Error: {e}")
             raise PulseError
