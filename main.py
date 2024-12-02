@@ -23,6 +23,8 @@ class AudioControl(PluginBase):
         super().__init__(use_legacy_locale=False)
         self.init_vars()
 
+        self.has_plugin_settings = True
+
         self.mute_action_holder = ActionHolder(
             plugin_base=self,
             action_base=Mute,
