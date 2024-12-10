@@ -7,9 +7,6 @@ class DeviceFilter(enum.StrEnum):
     SINK = "sink",
     SOURCE = "source",
 
-class PulseError(Exception):
-    pass
-
 def filter_proplist(proplist) -> str | None:
     filters: list[str] = [
         "alsa.card_name",
@@ -56,13 +53,14 @@ def filter_proplist(proplist) -> str | None:
 def get_device(filter: DeviceFilter, pulse_device_name):
     with pulsectl.Pulse("device-getter") as pulse:
         try:
+            device = None
             if filter == DeviceFilter.SINK:
-                return pulse.get_sink_by_name(pulse_device_name)
+                device = pulse.get_sink_by_name(pulse_device_name)
             elif filter == DeviceFilter.SOURCE:
-                return pulse.get_source_by_name(pulse_device_name)
+                device = pulse.get_source_by_name(pulse_device_name)
+            return device
         except Exception as e:
             log.error(f"Error while getting device: {pulse_device_name} with filter: {filter}. Error: {e}")
-            raise PulseError
     return None
 
 
@@ -91,8 +89,6 @@ def change_volume(device, adjust):
             pulse.volume_change_all_chans(device, adjust * 0.01)
         except Exception as e:
             log.error(f"Error while changing volume on device: {device.name}, adjustment is {adjust}. Error: {e}")
-            raise PulseError
-
 
 def set_volume(device, volume):
     with pulsectl.Pulse("change-volume") as pulse:
@@ -100,8 +96,6 @@ def set_volume(device, volume):
             pulse.volume_set_all_chans(device, volume * 0.01)
         except Exception as e:
             log.error(f"Error while setting volume on device: {device.name}, volume is {volume}. Error: {e}")
-            raise PulseError
-
 
 def mute(device, state):
     with pulsectl.Pulse("change-volume") as pulse:
@@ -109,7 +103,6 @@ def mute(device, state):
             pulse.mute(device, state)
         except Exception as e:
             log.error(f"Error while muting device: {device.name}, state is {state}. Error: {e}")
-            raise PulseError
 
 def get_standard_device(device_filter: DeviceFilter):
     with pulsectl.Pulse("change-volume") as pulse:
@@ -121,4 +114,3 @@ def get_standard_device(device_filter: DeviceFilter):
             return None
         except Exception as e:
             log.error(f"Error while getting standard device for filter: {str(device_filter)}. Error: {e}")
-            raise PulseError
