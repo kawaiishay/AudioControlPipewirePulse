@@ -1,5 +1,6 @@
 import enum
 
+import subprocess
 import pulsectl
 from loguru import logger as log
 
@@ -86,21 +87,30 @@ def get_volumes_from_device(device_filter: DeviceFilter, pulse_device_name: str)
 def change_volume(device, adjust):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
-            pulse.volume_change_all_chans(device, adjust * 0.01)
+
+            if adjust < 0:
+                adjust = -1*adjust
+                subprocess.run(["./pulseaudio-ctl.sh", "down", adjust])
+
+            else:
+                subprocess.run(["./pulseaudio-ctl.sh", "up", adjust])
+            # pulse.volume_change_all_chans(device, adjust * 0.01)
         except Exception as e:
             log.error(f"Error while changing volume on device: {device.name}, adjustment is {adjust}. Error: {e}")
 
 def set_volume(device, volume):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
-            pulse.volume_set_all_chans(device, volume * 0.01)
+            subprocess.run(["./pulseaudio-ctl.sh", "set", volume])
+            # pulse.volume_set_all_chans(device, volume * 0.01)
         except Exception as e:
             log.error(f"Error while setting volume on device: {device.name}, volume is {volume}. Error: {e}")
 
 def mute(device, state):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
-            pulse.mute(device, state)
+            subprocess.run(["./pulseaudio-ctl.sh", "mute"])
+            # pulse.mute(device, state)
         except Exception as e:
             log.error(f"Error while muting device: {device.name}, state is {state}. Error: {e}")
 

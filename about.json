@@ -1,5 +1,5 @@
 {
-  "author": "G4PLS",
+  "author": "kawaiishay (G4PLS)",
   "release-notes": {
       "path": "release_notes.notes",
       "version": "1.0.0"
@@ -11,7 +11,8 @@
     ],
     "Contributors": [
         "CORE",
-        "GAPLS"
+        "GAPLS",
+        "kawaiishay (G4PLS)"
     ]
   },
   "comments": {
