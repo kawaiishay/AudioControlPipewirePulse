@@ -4,7 +4,7 @@ from ..internal import GlobalHelpers
 import subprocess
 import pulsectl
 from loguru import logger as log
-import 
+import os
 
 class DeviceFilter(enum.StrEnum):
     SINK = "sink",
@@ -12,7 +12,7 @@ class DeviceFilter(enum.StrEnum):
 
 
 # always ensure the script is an executable
-subprocess.run([f"chmod", "+x", os.path.join(f"{GlobalHelpers.get_app_component_path("internal/pulseaudio-ctl.sh", top_plugin_sub_folder="internal")}")])
+subprocess.run([f"chmod", "+x", os.path.join(f"{GlobalHelpers.get_app_component_path("pulseaudio-ctl.sh", top_plugin_sub_folder="internal")}")])
 
 def filter_proplist(proplist) -> str | None:
     filters: list[str] = [
