@@ -11,7 +11,7 @@ class DeviceFilter(enum.StrEnum):
 
 
 # always ensure the script is an executable
-subprocess.run([f"chmod", "+x", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh"])
+subprocess.run([f"chmod", "+x", "internal/pulseaudio-ctl.sh"])
 
 def filter_proplist(proplist) -> str | None:
     filters: list[str] = [
