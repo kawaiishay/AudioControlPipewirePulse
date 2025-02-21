@@ -291,13 +291,8 @@ class DialController(DeviceBase):
             if direction < 0:
                 change_volume(device, -self.volume_adjust)
                 return
-
-            volumes = get_volumes_from_device(self.device_filter, device.name)
-            if len(volumes) > 0 and volumes[0] < self.volume_bounds:
-                if volumes[0] + self.volume_adjust > self.volume_bounds and direction > 0:
-                    set_volume(device, self.volume_bounds)
-                else:
-                    change_volume(device, self.volume_adjust)
+            else:
+                change_volume(device, self.volume_adjust)
         except Exception as e:
             log.error(e)
             self.show_error(1)

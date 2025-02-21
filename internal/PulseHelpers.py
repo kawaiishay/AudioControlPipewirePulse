@@ -93,9 +93,10 @@ def get_volumes_from_device(device_filter: DeviceFilter, pulse_device_name: str)
         return []
 
 
-def change_volume(device, adjust):
+def change_volume(device, adjust: int):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
+            adjust = int(adjust)
             if adjust < 0:
                 adjust = -1*adjust
                 subprocess.run([f"flatpak-spawn", "--host", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh", "down", f"{adjust}"])
@@ -106,7 +107,7 @@ def change_volume(device, adjust):
         except Exception as e:
             log.error(f"Error while changing volume on device: {device.name}, adjustment is {adjust}. Error: {e}")
 
-def set_volume(device, volume):
+def set_volume(device, volume: int):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
             subprocess.run([f"flatpak-spawn", "--host", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh", "set", f"{volume}"])

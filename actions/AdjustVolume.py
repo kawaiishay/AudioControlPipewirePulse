@@ -106,17 +106,8 @@ class AdjustVolume(DeviceBase):
             else:
                 device = get_device(self.device_filter, self.pulse_device_name)
 
-            if self.volume_adjust < 0:
-                change_volume(device, self.volume_adjust)
-                return
-
-            volumes = get_volumes_from_device(self.device_filter, device.name)
-
-            if len(volumes) > 0 and volumes[0] < self.volume_bounds:
-                if volumes[0] + self.volume_adjust > self.volume_bounds:
-                    set_volume(device, self.volume_bounds)
-                else:
-                    change_volume(device, self.volume_adjust)
+            change_volume(device, self.volume_adjust)
+    
         except Exception as e:
             log.error(e)
             self.show_error(1)
