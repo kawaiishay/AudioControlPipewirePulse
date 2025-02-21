@@ -9,6 +9,10 @@ class DeviceFilter(enum.StrEnum):
     SINK = "sink",
     SOURCE = "source",
 
+
+# always ensure the script is an executable
+subprocess.run([f"chmod", "+x", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh"])
+
 def filter_proplist(proplist) -> str | None:
     filters: list[str] = [
         "alsa.card_name",
