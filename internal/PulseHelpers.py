@@ -1,5 +1,6 @@
 import enum
 
+from ..internal import GlobalHelpers
 import subprocess
 import pulsectl
 from loguru import logger as log
@@ -61,7 +62,10 @@ def get_device(filter: DeviceFilter, pulse_device_name):
                 device = pulse.get_source_by_name(pulse_device_name)
             return device
         except Exception as e:
-            log.error(f"Error while getting device: {pulse_device_name} with filter: {filter}. Error: {e}")
+            if filter == DeviceFilter.SINK:
+                log.error(f"Error while getting device: {pulse_device_name} with filter: {filter}. Error: {e}.\nSinks:\n\t{pulse.sink_list()}")
+            else:
+                log.error(f"Error while getting device: {pulse_device_name} with filter: {filter}. Error: {e}.\nSources:\n\t{pulse.source_list()}")
     return None
 
 
@@ -80,20 +84,19 @@ def get_volumes_from_device(device_filter: DeviceFilter, pulse_device_name: str)
         device_volumes = device.volume.values
         return [round(vol * 100) for vol in device_volumes]
     except Exception as e:
-        log.error(f"Error while getting volumes from device: {pulse_device_name} with filter: {device_filter}. Error: {e}")
+        log.error(f"Error while getting volumes from device: {pulse_device_name} with filter: {device_filter} -- [Full Device Info: {device}]. Error: {e}")
         return []
 
 
 def change_volume(device, adjust):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
-
             if adjust < 0:
                 adjust = -1*adjust
-                subprocess.run(["./pulseaudio-ctl.sh", "down", adjust])
+                subprocess.run([f"flatpak-spawn", "--host", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh", "down", f"{adjust}"])
 
             else:
-                subprocess.run(["./pulseaudio-ctl.sh", "up", adjust])
+                subprocess.run([f"flatpak-spawn", "--host", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh", "up", f"{adjust}"])
             # pulse.volume_change_all_chans(device, adjust * 0.01)
         except Exception as e:
             log.error(f"Error while changing volume on device: {device.name}, adjustment is {adjust}. Error: {e}")
@@ -101,7 +104,7 @@ def change_volume(device, adjust):
 def set_volume(device, volume):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
-            subprocess.run(["./pulseaudio-ctl.sh", "set", volume])
+            subprocess.run([f"flatpak-spawn", "--host", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh", "set", f"{volume}"])
             # pulse.volume_set_all_chans(device, volume * 0.01)
         except Exception as e:
             log.error(f"Error while setting volume on device: {device.name}, volume is {volume}. Error: {e}")
@@ -109,7 +112,7 @@ def set_volume(device, volume):
 def mute(device, state):
     with pulsectl.Pulse("change-volume") as pulse:
         try:
-            subprocess.run(["./pulseaudio-ctl.sh", "mute"])
+            subprocess.run([f"flatpak-spawn", "--host", f"--directory={GlobalHelpers.plugin_base_dir()}", "internal/pulseaudio-ctl.sh", "mute"])
             # pulse.mute(device, state)
         except Exception as e:
             log.error(f"Error while muting device: {device.name}, state is {state}. Error: {e}")

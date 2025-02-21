@@ -74,7 +74,7 @@ class AudioControl(PluginBase):
 
         self.pulse_sink_event_holder = PulseEvent(
             self,
-            "com_gapls_AudioControl::PulseEvent",
+            "com_kawaiishay_AudioControl::PulseEvent",
             "sink", "source"
         )
         self.add_event_holder(self.pulse_sink_event_holder)

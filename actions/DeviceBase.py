@@ -207,6 +207,7 @@ class DeviceBase(ActionBase):
 
         self.device_dropdown.populate(device_list)
 
+
         for i in range(len(device_list)):
             if device_list[i].display_label == self.device_name:
                 self.device_dropdown.set_selected_item(i)

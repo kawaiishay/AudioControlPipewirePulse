@@ -17,7 +17,7 @@ class AdjustVolume(DeviceBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.plugin_base.connect_to_event(event_id="com_gapls_AudioControl::PulseEvent",
+        self.plugin_base.connect_to_event(event_id="com_kawaiishay_AudioControl::PulseEvent",
                                           callback=self.on_pulse_device_change)
 
         self.volume_adjust: int = 1
